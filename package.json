@@ -1,12 +1,12 @@
 {
-  "name": "nucleus",
+  "name": "nucleux",
   "version": "1.0.0",
   "description": "Simple, atomic state management",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/martyroque/nucleus.git"
+    "url": "https://github.com/martyroque/nucleux"
   },
   "engines": {
     "node": ">=14"

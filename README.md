@@ -1,4 +1,4 @@
-# Nucleus
+# Nucleux
 
 _Simple, atomic hub for all your application's state management needs._
 
@@ -6,13 +6,13 @@ _Simple, atomic hub for all your application's state management needs._
 
 ## Introduction
 
-Nucleus is a simple, atomic state management library based on the publisher-subscriber pattern and inversion-of-control (IoC) container design principle.
+Nucleux is a simple, atomic state management library based on the publisher-subscriber pattern and inversion-of-control (IoC) container design principle.
 
-Nucleus allows you to have centralized locations (stores) with units of state (atoms) that your application can subscribe to. Unlike other state management libraries, Nucleus only triggers strictly-needed, isolated updates for computations (e.g. React components) subscribed to atoms.
+Nucleux allows you to have centralized locations (stores) with units of state (atoms) that your application can subscribe to. Unlike other state management libraries, Nucleux only triggers strictly-needed, isolated updates for computations (e.g. React components) subscribed to atoms.
 
-With Nucleus you can manage your application state outside of any UI framework, making your code decoupled, portable, and testable.
+With Nucleux you can manage your application state outside of any UI framework, making your code decoupled, portable, and testable.
 
-## Why Nucleus over other state management libraries?
+## Why Nucleux over other state management libraries?
 
 - Simple and un-opinionated
 - Makes hooks the primary means of consuming state
@@ -41,7 +41,7 @@ With Nucleus you can manage your application state outside of any UI framework, 
 ## Installation
 
 ```sh
-npm install nucleus
+npm install nucleux
 ```
 
 ## A quick example
@@ -49,7 +49,7 @@ npm install nucleus
 ```javascript
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Value, useStore, useValue } from 'nucleus';
+import { Value, useStore, useValue } from 'nucleux';
 
 class CounterStore {
   count = new Value(0);
@@ -76,7 +76,7 @@ ReactDOM.render(<CounterView />, document.body);
 
 ## Description
 
-Nucleus leverages on two software architecture patterns:
+Nucleux leverages on two software architecture patterns:
 
 - IoC Container pattern (a.k.a. DI Container) to manage store instantiation, dependency injection and lifecycle.
 - The publisher-subscriber pattern to implement values within the stores that any JavaScript context (including React components) can subscribe and publish to.
@@ -99,7 +99,7 @@ First, let's create our store. A store is a class that implements the following:
 Note: It is a good pattern to keep your stores separate from your UI.
 
 ```javascript
-import { Value } from 'nucleus';
+import { Value } from 'nucleux';
 
 class CounterStore {
   count = new Value(0);
@@ -118,7 +118,7 @@ export default CounterStore;
 Now that we have our store, we can use it anywhere within a JavaScript application by getting its instance via the container.
 
 ```javascript
-import { Container } from 'nucleus';
+import { Container } from 'nucleux';
 import CounterStore from './CounterStore';
 
 // get the container and store instances
@@ -153,7 +153,7 @@ By using these hooks, we get automatic value un-subscription and store disposal 
 ```javascript
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { useStore, useValue } from 'nucleus';
+import { useStore, useValue } from 'nucleux';
 import CounterStore from './CounterStore';
 
 const CounterView = () => {
@@ -178,12 +178,12 @@ _(WIP)_
 
 It's important for all applications to follow software design principles, specifically separation of concerns and segregation.
 
-With Nucleus, we can have segregated stores that contain a small meaningful portion of the application's state, and then leverage the container to inject stores into main stores.
+With Nucleux, we can have segregated stores that contain a small meaningful portion of the application's state, and then leverage the container to inject stores into main stores.
 
 Let's say we have a store that needs to read the count value from our `CounterStore`. We can easily inject the store like this:
 
 ```javascript
-import { Value, Store } from 'nucleus';
+import { Value, Store } from 'nucleux';
 import CounterStore from './CounterStore';
 
 class ApplicationStore extends Store {
@@ -222,7 +222,7 @@ this.count.value = currentCount + 1;
 
 ### Persistency - Custom Storage
 
-You can configure Nucleus values to use custom storage for persistency. For instance, in React Native, you can use `AsyncStorage`:
+You can configure Nucleux values to use custom storage for persistency. For instance, in React Native, you can use `AsyncStorage`:
 
 ```javascript
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -234,14 +234,14 @@ count = new Value(0, 'CountValue', {
 
 ## Computed Values
 
-Sometimes we have complex stores with several values that we then need to use to derive a value from. Nucleus offers computed values feature, which allows us to consume store values, compute them in a callback and produce a single result. To do so, we need our store to extend from `Store`.
+Sometimes we have complex stores with several values that we then need to use to derive a value from. Nucleux offers computed values feature, which allows us to consume store values, compute them in a callback and produce a single result. To do so, we need our store to extend from `Store`.
 
 Let's say we have a store that manages the user session, and we have a `isAuth` value to determine if the user is authenticated. Now, let's say our user store depends on the API store, which has a value `isConnected` to allow API requests. Given a requirement that we should only allow requests from authenticated users when the API is connected, we can create a computed property called `shouldMakeRequest`, like so:
 
 ### ApiStore
 
 ```javascript
-import { Value } from 'nucleus';
+import { Value } from 'nucleux';
 
 class ApiStore {
   isConnected = new Value(false);
@@ -253,7 +253,7 @@ export default ApiStore;
 ### UserStore
 
 ```javascript
-import { Value, Store } from 'nucleus';
+import { Value, Store } from 'nucleux';
 import ApiStore from './ApiStore';
 
 class UserStore extends Store {
@@ -275,7 +275,7 @@ With this, `shouldMakeRequest` will track both `isAuth` and `isConnected` values
 ```javascript
 import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { useStore, useValue } from 'nucleus';
+import { useStore, useValue } from 'nucleux';
 import UserStore from './UserStore';
 
 const App = () => {
@@ -296,13 +296,13 @@ ReactDOM.render(<App />, document.body);
 
 ## React Native
 
-Nucleus uses `nanoid` for a secure unique string ID generation to create value subscriptions and store identifiers. React Native does not have built-in random generator. The following polyfill works for plain React Native and Expo starting with 39.x.
+Nucleux uses `nanoid` for a secure unique string ID generation to create value subscriptions and store identifiers. React Native does not have built-in random generator. The following polyfill works for plain React Native and Expo starting with 39.x.
 
 ```javascript
 // App.jsx
 import 'react-native-get-random-values';
 import { View } from 'react-native';
-import { useStore, useValue } from 'nucleus';
+import { useStore, useValue } from 'nucleux';
 
 import YourStore from './YourStore';
 
