@@ -1,4 +1,4 @@
-import { AppsDigestContainer } from '../AppsDigestContainer';
+import { Container } from '../Container';
 
 const mockDestroy = jest.fn();
 
@@ -6,9 +6,9 @@ class MockStore {
   destroy = mockDestroy;
 }
 
-const storeContainer = AppsDigestContainer.getInstance();
+const storeContainer = Container.getInstance();
 
-describe('AppsDigestContainer tests', () => {
+describe('Container tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });

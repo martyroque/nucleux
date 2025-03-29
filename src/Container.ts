@@ -1,30 +1,26 @@
-import {
-  AppsDigestStoreInterface,
-  AppsDigestStoreDefinition,
-  AppsDigestStoreConstructable,
-} from './types';
+import { StoreConstructable, StoreDefinition, StoreInterface } from './types';
 import { generateStoreDefinition } from './utils';
 
 type StoreRecord = {
-  instance: AppsDigestStoreInterface;
+  instance: StoreInterface;
   refCount: number;
 };
 
-class AppsDigestContainer {
-  private static instance: AppsDigestContainer = new AppsDigestContainer();
+class Container {
+  private static instance: Container = new Container();
   private stores: Map<string, StoreRecord> = new Map();
 
   constructor() {
-    if (AppsDigestContainer.instance) {
+    if (Container.instance) {
       throw new Error(
-        'Error: Instantiation failed. Use AppsDigestContainer.getInstance() instead.',
+        'Error: Instantiation failed. Use Container.getInstance() instead.',
       );
     }
 
-    AppsDigestContainer.instance = this;
+    Container.instance = this;
   }
 
-  private instantiate<S>(storeDefinition: AppsDigestStoreDefinition<S>) {
+  private instantiate<S>(storeDefinition: StoreDefinition<S>) {
     if (this.stores.has(storeDefinition.storeId)) {
       console.warn(
         `Store record for ${storeDefinition.storeId} already exists`,
@@ -38,13 +34,13 @@ class AppsDigestContainer {
     });
   }
 
-  public static getInstance(): AppsDigestContainer {
-    return AppsDigestContainer.instance;
+  public static getInstance(): Container {
+    return Container.instance;
   }
 
   public getStoreDefinition<S>(
-    store: AppsDigestStoreConstructable<S>,
-  ): AppsDigestStoreDefinition<S> {
+    store: StoreConstructable<S>,
+  ): StoreDefinition<S> {
     if ('getStoreDefinition' in store.prototype) {
       return store.prototype.getStoreDefinition();
     }
@@ -57,7 +53,7 @@ class AppsDigestContainer {
     return storeDefinition;
   }
 
-  public get<S>(store: AppsDigestStoreConstructable<S>): S {
+  public get<S>(store: StoreConstructable<S>): S {
     const storeDefinition = this.getStoreDefinition(store);
 
     if (!this.stores.has(storeDefinition.storeId)) {
@@ -74,7 +70,7 @@ class AppsDigestContainer {
     return storeRecord.instance as S;
   }
 
-  public remove<S>(store: AppsDigestStoreConstructable<S>) {
+  public remove<S>(store: StoreConstructable<S>) {
     const storeDefinition = this.getStoreDefinition(store);
     const storeRecord = this.stores.get(storeDefinition.storeId);
 
@@ -102,4 +98,4 @@ class AppsDigestContainer {
   }
 }
 
-export { AppsDigestContainer };
+export { Container };

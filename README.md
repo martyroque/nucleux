@@ -1,22 +1,18 @@
-# App's Digest
+# Nucleus
 
-_Simple, atomic state management._
-
-[![npm version](https://badge.fury.io/js/apps-digest.svg)](https://badge.fury.io/js/apps-digest) [![Featured on Openbase](https://badges.openbase.com/js/featured/apps-digest.svg?style=openbase&token=LuCH/H1y5l8aDjsBIRWlzGDU0e1s+qmuz7E4bsIfFoQ=)](https://openbase.com/js/apps-digest?utm_source=embedded&utm_medium=badge&utm_campaign=rate-badge)
+_Simple, atomic hub for all your application's state management needs._
 
 ---
 
 ## Introduction
 
-App's Digest is a simple, atomic state management library based on the publisher-subscriber pattern and inversion-of-control (IoC) container design principle.
+Nucleus is a simple, atomic state management library based on the publisher-subscriber pattern and inversion-of-control (IoC) container design principle.
 
-App's Digest allows you to have centralized locations (stores) with units of state (atoms) that your application can subscribe to. Unlike other state management libraries, App's Digest only triggers strictly-needed, isolated updates for computations (e.g. React components) subscribed to atoms.
+Nucleus allows you to have centralized locations (stores) with units of state (atoms) that your application can subscribe to. Unlike other state management libraries, Nucleus only triggers strictly-needed, isolated updates for computations (e.g. React components) subscribed to atoms.
 
-With App's Digest you can manage your application state outside of any UI framework, making your code decoupled, portable, and testable.
+With Nucleus you can manage your application state outside of any UI framework, making your code decoupled, portable, and testable.
 
-> The library name was inspired by the general-interest subscription-based magazine, Reader's Digest.
-
-## Why App's Digest over other state management libraries?
+## Why Nucleus over other state management libraries?
 
 - Simple and un-opinionated
 - Makes hooks the primary means of consuming state
@@ -45,7 +41,7 @@ With App's Digest you can manage your application state outside of any UI framew
 ## Installation
 
 ```sh
-npm install apps-digest
+npm install nucleus
 ```
 
 ## A quick example
@@ -53,14 +49,10 @@ npm install apps-digest
 ```javascript
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {
-  AppsDigestValue,
-  useStore,
-  useValue,
-} from 'apps-digest';
+import { Value, useStore, useValue } from 'nucleus';
 
 class CounterStore {
-  count = new AppsDigestValue(0);
+  count = new Value(0);
 
   increment() {
     const currentCount = this.count.value;
@@ -84,12 +76,10 @@ ReactDOM.render(<CounterView />, document.body);
 
 ## Description
 
-App's Digest leverages on two software architecture patterns:
+Nucleus leverages on two software architecture patterns:
 
 - IoC Container pattern (a.k.a. DI Container) to manage store instantiation, dependency injection and lifecycle.
 - The publisher-subscriber pattern to implement values within the stores that any JavaScript context (including React components) can subscribe and publish to.
-
-![App's Digest Flow](https://emrock-app.s3.us-east-2.amazonaws.com/uploads/apps-digest-flow.png)
 
 ### What's a Store?
 
@@ -103,16 +93,16 @@ Let's take a closer look on how to use the library.
 
 First, let's create our store. A store is a class that implements the following:
 
-- Store value(s) by instantiating `AppsDigestValue` with an initial value (required).
+- Store value(s) by instantiating `Value` with an initial value (required).
 - Value setters that publish (updates) the store values (optional).
 
 Note: It is a good pattern to keep your stores separate from your UI.
 
 ```javascript
-import { AppsDigestValue } from 'apps-digest';
+import { Value } from 'nucleus';
 
 class CounterStore {
-  count = new AppsDigestValue(0);
+  count = new Value(0);
 
   increment() {
     const currentCount = this.count.value;
@@ -128,11 +118,11 @@ export default CounterStore;
 Now that we have our store, we can use it anywhere within a JavaScript application by getting its instance via the container.
 
 ```javascript
-import { AppsDigestContainer } from 'apps-digest';
+import { Container } from 'nucleus';
 import CounterStore from './CounterStore';
 
 // get the container and store instances
-const storeContainer = AppsDigestContainer.getInstance();
+const storeContainer = Container.getInstance();
 const counterStore = storeContainer.get(CounterStore);
 
 // subscribe to the value
@@ -163,7 +153,7 @@ By using these hooks, we get automatic value un-subscription and store disposal 
 ```javascript
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { useStore, useValue } from 'apps-digest';
+import { useStore, useValue } from 'nucleus';
 import CounterStore from './CounterStore';
 
 const CounterView = () => {
@@ -182,23 +172,23 @@ ReactDOM.render(<CounterView />, document.body);
 
 ### See this live
 
-Please visit our [App's Digest Codesandbox](https://codesandbox.io/s/apps-digest-tutorial-0cwlqq?file=/src/App.js) to see a live example of the React usage.
+_(WIP)_
 
 ## Dependency (injection)
 
 It's important for all applications to follow software design principles, specifically separation of concerns and segregation.
 
-With App's Digest, we can have segregated stores that contain a small meaningful portion of the application's state, and then leverage the container to inject stores into main stores.
+With Nucleus, we can have segregated stores that contain a small meaningful portion of the application's state, and then leverage the container to inject stores into main stores.
 
 Let's say we have a store that needs to read the count value from our `CounterStore`. We can easily inject the store like this:
 
 ```javascript
-import { AppsDigestValue, AppsDigestStore } from 'apps-digest';
+import { Value, Store } from 'nucleus';
 import CounterStore from './CounterStore';
 
-class ApplicationStore extends AppsDigestStore {
+class ApplicationStore extends Store {
   counterStore = this.inject(CounterStore);
-  isMax = new AppsDigestValue(false);
+  isMax = new Value(false);
 
   constructor() {
     super();
@@ -214,17 +204,17 @@ class ApplicationStore extends AppsDigestStore {
 export default ApplicationStore;
 ```
 
-By extending from `AppsDigestStore`, we get the automatic un-subscription for free when the store is disposed.
+By extending from `Store`, we get the automatic un-subscription for free when the store is disposed.
 
 ## Persistency
 
-In order to persist a store value, we need to specify the persist key we would like to use (has to be unique) in the second argument of `AppsDigestValue`.
+In order to persist a store value, we need to specify the persist key we would like to use (has to be unique) in the second argument of `Value`.
 
 Every time the value is published, the value will be persisted. And, the next time the store is instantiated, the value will be rehydrated.
 
 ```javascript
 // assuming CountValue was persisted as 2, count will be hydrated with 2 instead of 0
-count = new AppsDigestValue(0, 'CountValue');
+count = new Value(0, 'CountValue');
 
 // this will persist the new value
 this.count.value = currentCount + 1;
@@ -232,29 +222,29 @@ this.count.value = currentCount + 1;
 
 ### Persistency - Custom Storage
 
-You can configure App's Digest values to use custom storage for persistency. For instance, in React Native, you can use `AsyncStorage`:
+You can configure Nucleus values to use custom storage for persistency. For instance, in React Native, you can use `AsyncStorage`:
 
 ```javascript
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-count = new AppsDigestValue(0, 'CountValue', {
+count = new Value(0, 'CountValue', {
   storage: AsyncStorage,
 });
 ```
 
 ## Computed Values
 
-Sometimes we have complex stores with several values that we then need to use to derive a value from. App's Digest offers computed values feature, which allows us to consume store values, compute them in a callback and produce a single result. To do so, we need our store to extend from `AppsDigestStore`.
+Sometimes we have complex stores with several values that we then need to use to derive a value from. Nucleus offers computed values feature, which allows us to consume store values, compute them in a callback and produce a single result. To do so, we need our store to extend from `Store`.
 
 Let's say we have a store that manages the user session, and we have a `isAuth` value to determine if the user is authenticated. Now, let's say our user store depends on the API store, which has a value `isConnected` to allow API requests. Given a requirement that we should only allow requests from authenticated users when the API is connected, we can create a computed property called `shouldMakeRequest`, like so:
 
 ### ApiStore
 
 ```javascript
-import { AppsDigestValue } from 'apps-digest';
+import { Value } from 'nucleus';
 
 class ApiStore {
-  isConnected = new AppsDigestValue(false);
+  isConnected = new Value(false);
 }
 
 export default ApiStore;
@@ -263,12 +253,12 @@ export default ApiStore;
 ### UserStore
 
 ```javascript
-import { AppsDigestValue, AppsDigestStore } from 'apps-digest';
+import { Value, Store } from 'nucleus';
 import ApiStore from './ApiStore';
 
-class UserStore extends AppsDigestStore {
+class UserStore extends Store {
   apiStore = this.inject(ApiStore);
-  isAuth = new AppsDigestValue(false);
+  isAuth = new Value(false);
   shouldMakeRequest = this.computedValue(
     [this.isAuth, this.apiStore.isConnected],
     (isAuthValue, isConnectedValue) => {
@@ -285,7 +275,7 @@ With this, `shouldMakeRequest` will track both `isAuth` and `isConnected` values
 ```javascript
 import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { useStore, useValue } from 'apps-digest';
+import { useStore, useValue } from 'nucleus';
 import UserStore from './UserStore';
 
 const App = () => {
@@ -306,13 +296,13 @@ ReactDOM.render(<App />, document.body);
 
 ## React Native
 
-App's Digest uses `nanoid` for a secure unique string ID generation to create value subscriptions and store identifiers. React Native does not have built-in random generator. The following polyfill works for plain React Native and Expo starting with 39.x.
+Nucleus uses `nanoid` for a secure unique string ID generation to create value subscriptions and store identifiers. React Native does not have built-in random generator. The following polyfill works for plain React Native and Expo starting with 39.x.
 
 ```javascript
 // App.jsx
-import 'react-native-get-random-values'
+import 'react-native-get-random-values';
 import { View } from 'react-native';
-import { useStore, useValue } from 'apps-digest';
+import { useStore, useValue } from 'nucleus';
 
 import YourStore from './YourStore';
 
@@ -320,11 +310,7 @@ export default function App() {
   const store = useStore(YourStore);
   const value = useValue(store.value);
 
-  return (
-    <View>
-      {/* ... */}
-    </View>
-  );
+  return <View>{/* ... */}</View>;
 }
 ```
 
@@ -332,10 +318,11 @@ export default function App() {
 
 - **Marty Roque**
   - GitHub: [@martyroque](https://github.com/martyroque)
-  - Twitter: [@lmproque](https://twitter.com/lmproque)
+  - X: [@lmproque](https://x.com/lmproque)
+  - LinkedIn: [@lmproque](https://www.linkedin.com/in/lmproque/)
 
 ## License
 
 [ISC License](LICENSE)
 
-Copyright © 2023 [Marty Roque](https://github.com/martyroque).
+Copyright © 2025 [Marty Roque](https://github.com/martyroque).

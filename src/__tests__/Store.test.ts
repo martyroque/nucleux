@@ -1,18 +1,18 @@
-import { AppsDigestStore } from '../AppsDigestStore';
-import { AppsDigestContainer } from '../AppsDigestContainer';
-import { AppsDigestValue } from '../AppsDigestValue';
+import { Container } from '../Container';
+import { Store } from '../Store';
+import { Value } from '../Value';
 
-const storeContainer = AppsDigestContainer.getInstance();
+const storeContainer = Container.getInstance();
 
 class MockSubStore {
-  testValue = new AppsDigestValue(1);
-  boolValue = new AppsDigestValue(false);
-  stringValue = new AppsDigestValue<string | undefined>(undefined);
+  testValue = new Value(1);
+  boolValue = new Value(false);
+  stringValue = new Value<string | undefined>(undefined);
 }
 
 const mockSubscribeCallback = jest.fn();
 
-class MockStore extends AppsDigestStore {
+class MockStore extends Store {
   public subStore = this.inject(MockSubStore);
 
   public computed = this.computedValue(
@@ -28,7 +28,7 @@ class MockStore extends AppsDigestStore {
   }
 }
 
-describe('AppsDigestStore tests', () => {
+describe('Store tests', () => {
   let mockStore: MockStore;
   let mockSubStore: MockSubStore;
   beforeEach(() => {

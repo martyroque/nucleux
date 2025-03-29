@@ -1,12 +1,12 @@
 {
-  "name": "apps-digest",
-  "version": "0.4.0",
+  "name": "nucleus",
+  "version": "1.0.0",
   "description": "Simple, atomic state management",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/martyroque/apps-digest.git"
+    "url": "https://github.com/martyroque/nucleus.git"
   },
   "engines": {
     "node": ">=14"

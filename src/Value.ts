@@ -1,13 +1,12 @@
 import { nanoid } from 'nanoid';
 
-interface AppsDigestReadOnlyValueInterface<V> {
+interface ReadOnlyValueInterface<V> {
   readonly value: V;
   subscribe: (callback: (value: V) => void) => string;
   unsubscribe: (subId: string) => boolean;
 }
 
-interface AppsDigestValueInterface<V>
-  extends AppsDigestReadOnlyValueInterface<V> {
+interface ValueInterface<V> extends ReadOnlyValueInterface<V> {
   value: V;
 }
 
@@ -29,21 +28,17 @@ export type SupportedStorage = PromisifyMethods<
   Pick<Storage, 'getItem' | 'setItem'>
 >;
 
-export type AppsDigestValueOptions = {
+export type ValueOptions = {
   storage: SupportedStorage;
 };
 
-class AppsDigestValue<V> implements AppsDigestValueInterface<V> {
+class Value<V> implements ValueInterface<V> {
   private _value: V;
   private subscribers: Map<string, Subscriber<V>> = new Map();
   private persistKey?: string;
   private storage?: SupportedStorage;
 
-  constructor(
-    initialValue: V,
-    persistKey?: string,
-    options?: AppsDigestValueOptions,
-  ) {
+  constructor(initialValue: V, persistKey?: string, options?: ValueOptions) {
     this._value = initialValue;
     this.persistKey = persistKey;
 
@@ -118,8 +113,4 @@ class AppsDigestValue<V> implements AppsDigestValueInterface<V> {
   }
 }
 
-export {
-  AppsDigestValue,
-  AppsDigestValueInterface,
-  AppsDigestReadOnlyValueInterface,
-};
+export { ReadOnlyValueInterface, Value, ValueInterface };

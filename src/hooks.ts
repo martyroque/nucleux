@@ -1,20 +1,20 @@
 import { useCallback, useMemo } from 'react';
 import { useSyncExternalStore } from 'use-sync-external-store/shim';
 
-import { AppsDigestStoreConstructable } from './types';
-import { AppsDigestContainer } from './AppsDigestContainer';
-import { AppsDigestReadOnlyValueInterface } from './AppsDigestValue';
+import { Container } from './Container';
+import { StoreConstructable } from './types';
+import { ReadOnlyValueInterface } from './Value';
 
-function useStore<S>(store: AppsDigestStoreConstructable<S>): S {
-  const appsDigestContainer = AppsDigestContainer.getInstance();
+function useStore<S>(store: StoreConstructable<S>): S {
+  const container = Container.getInstance();
 
   const [getStore, cleanup] = useMemo(() => {
-    const storeInstance = appsDigestContainer.get(store);
+    const storeInstance = container.get(store);
     return [
       () => storeInstance,
       () => {
         return () => {
-          appsDigestContainer.remove(store);
+          container.remove(store);
         };
       },
     ];
@@ -23,7 +23,7 @@ function useStore<S>(store: AppsDigestStoreConstructable<S>): S {
   return useSyncExternalStore(cleanup, getStore);
 }
 
-function useValue<V>(storeValue: AppsDigestReadOnlyValueInterface<V>): V {
+function useValue<V>(storeValue: ReadOnlyValueInterface<V>): V {
   const subscribe = useCallback((onStoreChange: () => void) => {
     const subId = storeValue.subscribe(onStoreChange);
 

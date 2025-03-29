@@ -1,32 +1,22 @@
-import { AppsDigestInjectable } from './AppsDigestInjectable';
-import {
-  AppsDigestReadOnlyValueInterface,
-  AppsDigestValue,
-} from './AppsDigestValue';
-import { AppsDigestStoreInterface } from './types';
+import { Injectable } from './Injectable';
+import { ReadOnlyValueInterface, Value } from './Value';
+import { StoreInterface } from './types';
 
-type UnwrappedAppsDigestValue<T> = T extends AppsDigestReadOnlyValueInterface<
-  infer R
->
-  ? R
-  : T;
+type UnwrappedValue<T> = T extends ReadOnlyValueInterface<infer R> ? R : T;
 
-type UnwrappedAppsDigestValues<
+type UnwrappedValues<
   // The value types of the tuple can be anything
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  T extends Array<AppsDigestReadOnlyValueInterface<any>>,
+  T extends Array<ReadOnlyValueInterface<any>>,
 > = {
-  [P in keyof T]: UnwrappedAppsDigestValue<T[P]>;
+  [P in keyof T]: UnwrappedValue<T[P]>;
 };
 
-abstract class AppsDigestStore
-  extends AppsDigestInjectable
-  implements AppsDigestStoreInterface
-{
+abstract class Store extends Injectable implements StoreInterface {
   private subscriptions: Map<string, (subId: string) => boolean> = new Map();
 
   protected subscribeToStoreValue<V>(
-    storeValue: AppsDigestReadOnlyValueInterface<V>,
+    storeValue: ReadOnlyValueInterface<V>,
     callback: (value: V) => void,
   ): void {
     const subId = storeValue.subscribe(callback);
@@ -38,20 +28,20 @@ abstract class AppsDigestStore
     V,
     // The value types of the tuple can be anything
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    A extends AppsDigestReadOnlyValueInterface<any>[] | [],
+    A extends ReadOnlyValueInterface<any>[] | [],
   >(
     storeValues: A,
-    callback: (...args: UnwrappedAppsDigestValues<A>) => V,
-  ): AppsDigestReadOnlyValueInterface<V> {
+    callback: (...args: UnwrappedValues<A>) => V,
+  ): ReadOnlyValueInterface<V> {
     function getComputedValue(): V {
       const values = storeValues.map((storeValue) => {
         return storeValue.value;
       });
 
-      return callback(...(values as UnwrappedAppsDigestValues<A>));
+      return callback(...(values as UnwrappedValues<A>));
     }
 
-    const computedValue = new AppsDigestValue(getComputedValue());
+    const computedValue = new Value(getComputedValue());
 
     function computedValueCallback() {
       const newComputedValue = getComputedValue();
@@ -76,4 +66,4 @@ abstract class AppsDigestStore
   }
 }
 
-export { AppsDigestStore };
+export { Store };

@@ -1,16 +1,16 @@
 import { act, renderHook } from '@testing-library/react';
 
-import { AppsDigestValue } from '../AppsDigestValue';
+import { Value } from '../Value';
 import { useStore, useValue } from '../hooks';
 
 const mockDestroy = jest.fn();
 
 class MockStore {
-  testValue = new AppsDigestValue(1);
+  testValue = new Value(1);
   destroy = mockDestroy;
 }
 
-describe('AppsDigest hooks tests', () => {
+describe('hooks tests', () => {
   describe('useStore', () => {
     it('should return the store instance', () => {
       const { result } = renderHook(() => useStore(MockStore));

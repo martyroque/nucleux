@@ -1,13 +1,10 @@
 import { nanoid } from 'nanoid';
 
-import {
-  AppsDigestStoreDefinition,
-  AppsDigestStoreConstructable,
-} from './types';
+import { StoreConstructable, StoreDefinition } from './types';
 
 function generateStoreDefinition<S>(
-  storeClass: AppsDigestStoreConstructable<S>,
-): AppsDigestStoreDefinition<S> {
+  storeClass: StoreConstructable<S>,
+): StoreDefinition<S> {
   return {
     storeId: nanoid(),
     storeClass,

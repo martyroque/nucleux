@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid';
-import { AppsDigestValue } from '../AppsDigestValue';
+import { Value } from '../Value';
 
 jest.mock('nanoid');
 
@@ -9,7 +9,7 @@ jest.mocked(nanoid).mockReturnValue(mockSubId);
 const setItemSpy = jest.spyOn(Storage.prototype, 'setItem');
 const getItemSpy = jest.spyOn(Storage.prototype, 'getItem');
 
-describe('AppsDigestValue tests', () => {
+describe('Value tests', () => {
   afterEach(() => {
     jest.clearAllMocks();
     localStorage.clear();
@@ -18,7 +18,7 @@ describe('AppsDigestValue tests', () => {
   describe('getter tests', () => {
     it('should get the current value', () => {
       const initialValue = 'test value';
-      const value = new AppsDigestValue(initialValue);
+      const value = new Value(initialValue);
 
       expect(value.value).toBe(initialValue);
     });
@@ -26,7 +26,7 @@ describe('AppsDigestValue tests', () => {
 
   describe('publish tests', () => {
     it('should update to the new value', () => {
-      const value = new AppsDigestValue('');
+      const value = new Value('');
 
       value.value = 'test';
 
@@ -38,7 +38,7 @@ describe('AppsDigestValue tests', () => {
         const expectedValue = 'initial value';
         const persistedKey = 'persisted_key';
         const newValue = 'test';
-        const value = new AppsDigestValue(expectedValue, persistedKey);
+        const value = new Value(expectedValue, persistedKey);
 
         await new Promise(process.nextTick);
 
@@ -51,7 +51,7 @@ describe('AppsDigestValue tests', () => {
       });
 
       it('should not persist the new value if persist key is not defined', () => {
-        const value = new AppsDigestValue<number>(2);
+        const value = new Value<number>(2);
 
         value.value = 3;
 
@@ -60,7 +60,7 @@ describe('AppsDigestValue tests', () => {
 
       it('should not persist the new value if persist key is defined and value has not changed', () => {
         const persistedKey = 'persisted_key';
-        const value = new AppsDigestValue(2, persistedKey);
+        const value = new Value(2, persistedKey);
         setItemSpy.mockClear();
 
         value.value = 2;
@@ -70,7 +70,7 @@ describe('AppsDigestValue tests', () => {
 
       it('should not persist the new value if persist key is defined and value is undefined', () => {
         const persistedKey = 'persisted_key';
-        const value = new AppsDigestValue<number | undefined>(2, persistedKey);
+        const value = new Value<number | undefined>(2, persistedKey);
         setItemSpy.mockClear();
 
         value.value = undefined;
@@ -82,7 +82,7 @@ describe('AppsDigestValue tests', () => {
 
   describe('subscribe tests', () => {
     it('should create the subscription', () => {
-      const value = new AppsDigestValue('');
+      const value = new Value('');
       const callback = jest.fn();
       value.subscribe(callback);
 
@@ -93,7 +93,7 @@ describe('AppsDigestValue tests', () => {
     });
 
     it('should return the subscription ID', () => {
-      const value = new AppsDigestValue(null);
+      const value = new Value(null);
 
       expect(value.subscribe(() => undefined)).toBe(mockSubId);
     });
@@ -101,13 +101,13 @@ describe('AppsDigestValue tests', () => {
 
   describe('unsubscribe tests', () => {
     it('should return false if subscriber ID is not found', () => {
-      const value = new AppsDigestValue('');
+      const value = new Value('');
 
       expect(value.unsubscribe('subId')).toBe(false);
     });
 
     it('should return true if the subscriber ID is found and deleted', () => {
-      const value = new AppsDigestValue('');
+      const value = new Value('');
       const callback = jest.fn();
       const subId = value.subscribe(callback);
 
@@ -123,11 +123,11 @@ describe('AppsDigestValue tests', () => {
     it('should hydrate persisted value when persisted value exists', async () => {
       const expectedValue = [1, 2, 3];
       const persistedKey = 'persisted_key';
-      new AppsDigestValue(expectedValue, persistedKey);
+      new Value(expectedValue, persistedKey);
 
       await new Promise(process.nextTick);
 
-      const value = new AppsDigestValue(null, persistedKey);
+      const value = new Value(null, persistedKey);
 
       await new Promise(process.nextTick);
 
@@ -139,7 +139,7 @@ describe('AppsDigestValue tests', () => {
       const expectedValue = false;
       const persistedKey = 'persisted_key';
 
-      const value = new AppsDigestValue(expectedValue, persistedKey);
+      const value = new Value(expectedValue, persistedKey);
 
       await new Promise(process.nextTick);
 
@@ -151,7 +151,7 @@ describe('AppsDigestValue tests', () => {
     });
 
     it('should not create new persisted value when persisted key is not defined', async () => {
-      new AppsDigestValue(false);
+      new Value(false);
 
       await new Promise(process.nextTick);
 
@@ -171,7 +171,7 @@ describe('AppsDigestValue tests', () => {
           Promise.resolve(JSON.stringify(expectedValue)),
         );
 
-        const value = new AppsDigestValue(null, persistedKey, {
+        const value = new Value(null, persistedKey, {
           storage: customStorage,
         });
 
@@ -185,7 +185,7 @@ describe('AppsDigestValue tests', () => {
         const expectedValue = false;
         const persistedKey = 'persisted_key';
 
-        const value = new AppsDigestValue(expectedValue, persistedKey, {
+        const value = new Value(expectedValue, persistedKey, {
           storage: customStorage,
         });
 
@@ -199,7 +199,7 @@ describe('AppsDigestValue tests', () => {
       });
 
       it('should not create new persisted value when persisted key is not defined', async () => {
-        new AppsDigestValue(false);
+        new Value(false);
 
         await new Promise(process.nextTick);
 

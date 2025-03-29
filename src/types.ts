@@ -1,18 +1,14 @@
-interface AppsDigestStoreInterface {
+interface StoreInterface {
   destroy?: () => void;
 }
 
-interface AppsDigestStoreConstructable<T> {
-  new (...args: unknown[]): T & AppsDigestStoreInterface;
+interface StoreConstructable<T> {
+  new (...args: unknown[]): T & StoreInterface;
 }
 
-type AppsDigestStoreDefinition<S> = {
+type StoreDefinition<S> = {
   storeId: string;
-  storeClass: AppsDigestStoreConstructable<S>;
+  storeClass: StoreConstructable<S>;
 };
 
-export {
-  AppsDigestStoreInterface,
-  AppsDigestStoreDefinition,
-  AppsDigestStoreConstructable,
-};
+export { StoreConstructable, StoreDefinition, StoreInterface };

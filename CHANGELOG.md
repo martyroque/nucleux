@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.0.0] - 2025-03-29
+
+### Changed
+
+- Migrate from apps-digest for simplicity and improvements.
+- Simplify all interfaces, classes and helpers names
+
 ## [0.4.0] - 2023-04-13
 
 ### Added
@@ -27,9 +34,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 
 - Abstract the store definition generation to the store container by
-adding a `getStoreDefinition` method to the store prototype, making it
-simpler to just export the stores instead of manually generating the
-store definition before exporting or using the store.
+  adding a `getStoreDefinition` method to the store prototype, making it
+  simpler to just export the stores instead of manually generating the
+  store definition before exporting or using the store.
 
 ### Removed
 
