@@ -4,10 +4,10 @@ import { Value } from '../Value';
 
 const storeContainer = Container.getInstance();
 
-class MockSubStore {
-  testValue = new Value(1);
-  boolValue = new Value(false);
-  stringValue = new Value<string | undefined>(undefined);
+class MockSubStore extends Store {
+  testValue = this.value(1);
+  boolValue = this.value(false);
+  stringValue = this.value<string | undefined>(undefined);
 }
 
 const mockSubscribeCallback = jest.fn();
@@ -24,13 +24,18 @@ class MockStore extends Store {
 
   constructor() {
     super();
-    this.subscribeToStoreValue(this.subStore.testValue, mockSubscribeCallback);
+    this.subscribeToValue(this.subStore.testValue, mockSubscribeCallback);
+  }
+
+  public getComputed() {
+    return this.computed.value;
   }
 }
 
 describe('Store tests', () => {
   let mockStore: MockStore;
   let mockSubStore: MockSubStore;
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockStore = storeContainer.get(MockStore);
@@ -41,7 +46,24 @@ describe('Store tests', () => {
     storeContainer.remove(MockStore);
   });
 
-  describe('subscribeToStoreValue', () => {
+  describe('autoBind', () => {
+    it('should automatically bind store methods', () => {
+      const getComputed = mockStore.getComputed;
+
+      expect(getComputed()).toBe(false);
+    });
+  });
+
+  describe('value', () => {
+    it('should return a new value instance', () => {
+      const testValue = mockSubStore.testValue;
+
+      expect(testValue.value).toBe(1);
+      expect(testValue).toBeInstanceOf(Value);
+    });
+  });
+
+  describe('subscribeToValue', () => {
     it('should subscribe to any store value', () => {
       mockSubStore.testValue.value = 2;
 

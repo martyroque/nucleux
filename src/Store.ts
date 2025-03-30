@@ -1,5 +1,6 @@
+import autoBind from 'auto-bind';
 import { Injectable } from './Injectable';
-import { ReadOnlyValueInterface, Value } from './Value';
+import { ReadOnlyValueInterface, Value, ValueInterface } from './Value';
 import { StoreInterface } from './types';
 
 type UnwrappedValue<T> = T extends ReadOnlyValueInterface<infer R> ? R : T;
@@ -15,7 +16,16 @@ type UnwrappedValues<
 abstract class Store extends Injectable implements StoreInterface {
   private subscriptions: Map<string, (subId: string) => boolean> = new Map();
 
-  protected subscribeToStoreValue<V>(
+  constructor() {
+    super();
+    autoBind(this);
+  }
+
+  protected value<V>(val: V): ValueInterface<V> {
+    return new Value(val);
+  }
+
+  protected subscribeToValue<V>(
     storeValue: ReadOnlyValueInterface<V>,
     callback: (value: V) => void,
   ): void {
@@ -50,7 +60,7 @@ abstract class Store extends Injectable implements StoreInterface {
     }
 
     storeValues.forEach((storeValue) => {
-      this.subscribeToStoreValue(storeValue, computedValueCallback);
+      this.subscribeToValue(storeValue, computedValueCallback);
     });
 
     return computedValue;
