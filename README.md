@@ -172,7 +172,7 @@ ReactDOM.render(<CounterView />, document.body);
 
 ### See this live
 
-_(WIP)_
+Please visit our [Codesandbox](https://codesandbox.io/p/sandbox/0cwlqq) to see a live example of the React usage.
 
 ## Dependency (injection)
 
