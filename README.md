@@ -49,10 +49,10 @@ npm install nucleux
 ```javascript
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Value, useStore, useValue } from 'nucleux';
+import { Store, useStore, useValue } from 'nucleux';
 
-class CounterStore {
-  count = new Value(0);
+class CounterStore extends Store {
+  count = this.atom(0);
 
   increment() {
     const currentCount = this.count.value;
@@ -65,9 +65,7 @@ const CounterView = () => {
   const count = useValue(counterStore.count);
 
   return (
-    <button onClick={() => counterStore.increment()}>
-      Current Count: {count}
-    </button>
+    <button onClick={counterStore.increment}>Current Count: {count}</button>
   );
 };
 
@@ -83,7 +81,7 @@ Nucleux leverages on two software architecture patterns:
 
 ### What's a Store?
 
-A store is essentially a bucket of values that other JavaScript objects can subscribe and publish to. The stores live as long as they have at least one reference in the container. Once the last reference of a store is removed, the store is disposed.
+A store is essentially a bucket of atoms (values) that other JavaScript objects can subscribe and publish to. The stores live as long as they have at least one reference in the container. Once the last reference of a store is removed, the store is disposed.
 
 ## Detailed Usage
 
@@ -93,16 +91,16 @@ Let's take a closer look on how to use the library.
 
 First, let's create our store. A store is a class that implements the following:
 
-- Store value(s) by instantiating `Value` with an initial value (required).
+- Store atom(s) by calling `atom()` with an initial value (required).
 - Value setters that publish (updates) the store values (optional).
 
 Note: It is a good pattern to keep your stores separate from your UI.
 
 ```javascript
-import { Value } from 'nucleux';
+import { Store } from 'nucleux';
 
-class CounterStore {
-  count = new Value(0);
+class CounterStore extends Store {
+  count = this.atom(0);
 
   increment() {
     const currentCount = this.count.value;
@@ -146,7 +144,7 @@ storeContainer.remove(CounterStore);
 
 All right, let's use our store in a UI using React (we'll support frameworks in the future).
 
-First we need to get our store instance by using the `useStore`. Then we can use the hook `useValue` to subscribe to the store value and trigger the side effects (render).
+First we need to get our store instance by using the `useStore`. Then we can use the hook `useValue` to subscribe to a store atom value and trigger the side effects (render).
 
 By using these hooks, we get automatic value un-subscription and store disposal for free when the component is unmounted.
 
@@ -161,9 +159,7 @@ const CounterView = () => {
   const count = useValue(counterStore.count);
 
   return (
-    <button onClick={() => counterStore.increment()}>
-      Current Count: {count}
-    </button>
+    <button onClick={counterStore.increment}>Current Count: {count}</button>
   );
 };
 
@@ -178,22 +174,22 @@ Please visit our [Codesandbox](https://codesandbox.io/p/sandbox/0cwlqq) to see a
 
 It's important for all applications to follow software design principles, specifically separation of concerns and segregation.
 
-With Nucleux, we can have segregated stores that contain a small meaningful portion of the application's state, and then leverage the container to inject stores into main stores.
+With Nucleux, we can have segregated stores that contain a small meaningful portion of the application's state (atoms) and then leverage the container to inject stores into main stores.
 
 Let's say we have a store that needs to read the count value from our `CounterStore`. We can easily inject the store like this:
 
 ```javascript
-import { Value, Store } from 'nucleux';
+import { Store } from 'nucleux';
 import CounterStore from './CounterStore';
 
 class ApplicationStore extends Store {
   counterStore = this.inject(CounterStore);
-  isMax = new Value(false);
+  isMax = this.atom(false);
 
   constructor() {
     super();
 
-    this.subscribeToStoreValue(this.counterStore.count, (count) => {
+    this.watchAtom(this.counterStore.count, (count) => {
       if (!this.isMax.value && count >= 10) {
         this.isMax.value = true;
       }
@@ -208,13 +204,13 @@ By extending from `Store`, we get the automatic un-subscription for free when th
 
 ## Persistency
 
-In order to persist a store value, we need to specify the persist key we would like to use (has to be unique) in the second argument of `Value`.
+In order to persist a store value, we need to specify the persist key we would like to use (has to be unique) in the second argument of `Atom`.
 
 Every time the value is published, the value will be persisted. And, the next time the store is instantiated, the value will be rehydrated.
 
 ```javascript
 // assuming CountValue was persisted as 2, count will be hydrated with 2 instead of 0
-count = new Value(0, 'CountValue');
+count = new Atom(0, 'CountValue');
 
 // this will persist the new value
 this.count.value = currentCount + 1;
@@ -227,24 +223,24 @@ You can configure Nucleux values to use custom storage for persistency. For inst
 ```javascript
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-count = new Value(0, 'CountValue', {
+count = new Atom(0, 'CountValue', {
   storage: AsyncStorage,
 });
 ```
 
 ## Computed Values
 
-Sometimes we have complex stores with several values that we then need to use to derive a value from. Nucleux offers computed values feature, which allows us to consume store values, compute them in a callback and produce a single result. To do so, we need our store to extend from `Store`.
+Sometimes we have complex stores with several atoms that we then need to use to derive a value from. Nucleux offers derived atoms feature, which allows us to consume store atoms, derive them in a transformer and produce a single result. To do so, we need our store to extend from `Store`.
 
-Let's say we have a store that manages the user session, and we have a `isAuth` value to determine if the user is authenticated. Now, let's say our user store depends on the API store, which has a value `isConnected` to allow API requests. Given a requirement that we should only allow requests from authenticated users when the API is connected, we can create a computed property called `shouldMakeRequest`, like so:
+Let's say we have a store that manages the user session, and we have a `isAuth` atom to determine if the user is authenticated. Now, let's say our user store depends on the API store, which has an atom `isConnected` to allow API requests. Given a requirement that we should only allow requests from authenticated users when the API is connected, we can create a computed property called `shouldMakeRequest`, like so:
 
 ### ApiStore
 
 ```javascript
-import { Value } from 'nucleux';
+import { Store } from 'nucleux';
 
-class ApiStore {
-  isConnected = new Value(false);
+class ApiStore extends Store {
+  isConnected = this.atom(false);
 }
 
 export default ApiStore;
@@ -253,13 +249,13 @@ export default ApiStore;
 ### UserStore
 
 ```javascript
-import { Value, Store } from 'nucleux';
+import { Store } from 'nucleux';
 import ApiStore from './ApiStore';
 
 class UserStore extends Store {
   apiStore = this.inject(ApiStore);
-  isAuth = new Value(false);
-  shouldMakeRequest = this.computedValue(
+  isAuth = this.atom(false);
+  shouldMakeRequest = this.deriveAtom(
     [this.isAuth, this.apiStore.isConnected],
     (isAuthValue, isConnectedValue) => {
       return isAuthValue && isConnectedValue;
@@ -270,7 +266,7 @@ class UserStore extends Store {
 export default UserStore;
 ```
 
-With this, `shouldMakeRequest` will track both `isAuth` and `isConnected` values and produce a single `boolean` value as a result. This computed value can be used as a regular store value anywhere in our app.
+With this, `shouldMakeRequest` will watch both `isAuth` and `isConnected` atom and derive a single `boolean` atom as a result. This derived atom can be used as a regular store value anywhere in our app.
 
 ```javascript
 import React, { useEffect } from 'react';
