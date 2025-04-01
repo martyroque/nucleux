@@ -1,13 +1,20 @@
+import autoBind from 'auto-bind';
+import {
+  Atom,
+  AtomInterface,
+  AtomOptions,
+  ReadOnlyAtomInterface,
+  SupportedStorage,
+} from './Atom';
 import { Injectable } from './Injectable';
-import { ReadOnlyValueInterface, Value } from './Value';
 import { StoreInterface } from './types';
 
-type UnwrappedValue<T> = T extends ReadOnlyValueInterface<infer R> ? R : T;
+type UnwrappedValue<T> = T extends ReadOnlyAtomInterface<infer R> ? R : T;
 
 type UnwrappedValues<
   // The value types of the tuple can be anything
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  T extends Array<ReadOnlyValueInterface<any>>,
+  T extends Array<ReadOnlyAtomInterface<any>>,
 > = {
   [P in keyof T]: UnwrappedValue<T[P]>;
 };
@@ -15,8 +22,25 @@ type UnwrappedValues<
 abstract class Store extends Injectable implements StoreInterface {
   private subscriptions: Map<string, (subId: string) => boolean> = new Map();
 
-  protected subscribeToStoreValue<V>(
-    storeValue: ReadOnlyValueInterface<V>,
+  protected storage?: SupportedStorage;
+
+  constructor() {
+    super();
+    autoBind(this);
+  }
+
+  protected atom<V>(
+    initialValue: V,
+    persistKey?: string,
+    options?: AtomOptions,
+  ): AtomInterface<V> {
+    const atomOptions = options ?? (this.storage && { storage: this.storage });
+
+    return new Atom(initialValue, persistKey, atomOptions);
+  }
+
+  protected watchAtom<V>(
+    storeValue: ReadOnlyAtomInterface<V>,
     callback: (value: V) => void,
   ): void {
     const subId = storeValue.subscribe(callback);
@@ -24,36 +48,36 @@ abstract class Store extends Injectable implements StoreInterface {
     this.subscriptions.set(subId, storeValue.unsubscribe);
   }
 
-  protected computedValue<
+  protected deriveAtom<
     V,
     // The value types of the tuple can be anything
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    A extends ReadOnlyValueInterface<any>[] | [],
+    A extends ReadOnlyAtomInterface<any>[] | [],
   >(
-    storeValues: A,
-    callback: (...args: UnwrappedValues<A>) => V,
-  ): ReadOnlyValueInterface<V> {
-    function getComputedValue(): V {
-      const values = storeValues.map((storeValue) => {
-        return storeValue.value;
+    sourceAtoms: A,
+    transformer: (...args: UnwrappedValues<A>) => V,
+  ): ReadOnlyAtomInterface<V> {
+    function getDerivedValue(): V {
+      const values = sourceAtoms.map((atom) => {
+        return atom.value;
       });
 
-      return callback(...(values as UnwrappedValues<A>));
+      return transformer(...(values as UnwrappedValues<A>));
     }
 
-    const computedValue = new Value(getComputedValue());
+    const derivedAtom = new Atom(getDerivedValue());
 
     function computedValueCallback() {
-      const newComputedValue = getComputedValue();
+      const newComputedValue = getDerivedValue();
 
-      computedValue.value = newComputedValue;
+      derivedAtom.value = newComputedValue;
     }
 
-    storeValues.forEach((storeValue) => {
-      this.subscribeToStoreValue(storeValue, computedValueCallback);
+    sourceAtoms.forEach((atom) => {
+      this.watchAtom(atom, computedValueCallback);
     });
 
-    return computedValue;
+    return derivedAtom;
   }
 
   public destroy(): void {

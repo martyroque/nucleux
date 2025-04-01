@@ -2,10 +2,7 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "commonjs",
-    "types": [
-      "node",
-      "jest"
-    ],
+    "types": ["node", "jest"],
     "declaration": true,
     "outDir": "dist",
     "esModuleInterop": true,
@@ -18,7 +15,8 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "allowJs": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "src/**/*.spec.ts", "src/**/*.test.ts"]

@@ -1,9 +1,9 @@
 import { useCallback, useMemo } from 'react';
 import { useSyncExternalStore } from 'use-sync-external-store/shim';
 
+import { ReadOnlyAtomInterface } from './Atom';
 import { Container } from './Container';
 import { StoreConstructable } from './types';
-import { ReadOnlyValueInterface } from './Value';
 
 function useStore<S>(store: StoreConstructable<S>): S {
   const container = Container.getInstance();
@@ -23,15 +23,16 @@ function useStore<S>(store: StoreConstructable<S>): S {
   return useSyncExternalStore(cleanup, getStore);
 }
 
-function useValue<V>(storeValue: ReadOnlyValueInterface<V>): V {
+function useValue<V>(atom: ReadOnlyAtomInterface<V>): V {
   const subscribe = useCallback((onStoreChange: () => void) => {
-    const subId = storeValue.subscribe(onStoreChange);
+    const subId = atom.subscribe(onStoreChange);
 
     return () => {
-      storeValue.unsubscribe(subId);
+      atom.unsubscribe(subId);
     };
   }, []);
-  const getter = useCallback(() => storeValue.value, [storeValue.value]);
+
+  const getter = useCallback(() => atom.value, [atom.value]);
 
   return useSyncExternalStore(subscribe, getter);
 }

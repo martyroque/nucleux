@@ -1,12 +1,12 @@
 import { act, renderHook } from '@testing-library/react';
 
-import { Value } from '../Value';
 import { useStore, useValue } from '../hooks';
+import { Store } from '../Store';
 
 const mockDestroy = jest.fn();
 
-class MockStore {
-  testValue = new Value(1);
+class MockStore extends Store {
+  testValue = this.atom(1);
   destroy = mockDestroy;
 }
 

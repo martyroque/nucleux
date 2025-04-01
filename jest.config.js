@@ -6,11 +6,11 @@ module.exports = {
     '**/?(*.)+(spec|test).+(ts|tsx|js)',
   ],
   transform: {
-    '^.+\\.(ts|tsx)$': 'ts-jest',
+    '^.+\\.[t|j]sx?$': 'ts-jest',
   },
   setupFilesAfterEnv: ['<rootDir>/jest.preload.js'],
   testEnvironment: 'jsdom',
-  transformIgnorePatterns: ['/node_modules/(?!nanoid)'],
+  transformIgnorePatterns: ['/node_modules/(?!(nanoid|auto-bind))'],
   moduleNameMapper: {
     '^nanoid(/(.*)|$)': 'nanoid$1',
   },

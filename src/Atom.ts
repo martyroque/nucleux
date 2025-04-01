@@ -1,12 +1,12 @@
 import { nanoid } from 'nanoid';
 
-interface ReadOnlyValueInterface<V> {
+interface ReadOnlyAtomInterface<V> {
   readonly value: V;
   subscribe: (callback: (value: V) => void) => string;
   unsubscribe: (subId: string) => boolean;
 }
 
-interface ValueInterface<V> extends ReadOnlyValueInterface<V> {
+interface AtomInterface<V> extends ReadOnlyAtomInterface<V> {
   value: V;
 }
 
@@ -28,17 +28,17 @@ export type SupportedStorage = PromisifyMethods<
   Pick<Storage, 'getItem' | 'setItem'>
 >;
 
-export type ValueOptions = {
+export type AtomOptions = {
   storage: SupportedStorage;
 };
 
-class Value<V> implements ValueInterface<V> {
+class Atom<V> implements AtomInterface<V> {
   private _value: V;
   private subscribers: Map<string, Subscriber<V>> = new Map();
   private persistKey?: string;
   private storage?: SupportedStorage;
 
-  constructor(initialValue: V, persistKey?: string, options?: ValueOptions) {
+  constructor(initialValue: V, persistKey?: string, options?: AtomOptions) {
     this._value = initialValue;
     this.persistKey = persistKey;
 
@@ -113,4 +113,4 @@ class Value<V> implements ValueInterface<V> {
   }
 }
 
-export { ReadOnlyValueInterface, Value, ValueInterface };
+export { Atom, AtomInterface, ReadOnlyAtomInterface };

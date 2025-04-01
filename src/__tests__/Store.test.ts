@@ -1,13 +1,13 @@
+import { Atom } from '../Atom';
 import { Container } from '../Container';
 import { Store } from '../Store';
-import { Value } from '../Value';
 
 const storeContainer = Container.getInstance();
 
-class MockSubStore {
-  testValue = new Value(1);
-  boolValue = new Value(false);
-  stringValue = new Value<string | undefined>(undefined);
+class MockSubStore extends Store {
+  testValue = this.atom(1);
+  boolValue = this.atom(false);
+  stringValue = this.atom<string | undefined>(undefined);
 }
 
 const mockSubscribeCallback = jest.fn();
@@ -15,7 +15,7 @@ const mockSubscribeCallback = jest.fn();
 class MockStore extends Store {
   public subStore = this.inject(MockSubStore);
 
-  public computed = this.computedValue(
+  public derived = this.deriveAtom(
     [this.subStore.boolValue, this.subStore.stringValue],
     (boolValue, stringValue) => {
       return boolValue && stringValue === 'TEST';
@@ -24,13 +24,18 @@ class MockStore extends Store {
 
   constructor() {
     super();
-    this.subscribeToStoreValue(this.subStore.testValue, mockSubscribeCallback);
+    this.watchAtom(this.subStore.testValue, mockSubscribeCallback);
+  }
+
+  public getDerived() {
+    return this.derived.value;
   }
 }
 
 describe('Store tests', () => {
   let mockStore: MockStore;
   let mockSubStore: MockSubStore;
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockStore = storeContainer.get(MockStore);
@@ -41,7 +46,24 @@ describe('Store tests', () => {
     storeContainer.remove(MockStore);
   });
 
-  describe('subscribeToStoreValue', () => {
+  describe('autoBind', () => {
+    it('should automatically bind store methods', () => {
+      const getDerived = mockStore.getDerived;
+
+      expect(getDerived()).toBe(false);
+    });
+  });
+
+  describe('atom', () => {
+    it('should return a new value instance', () => {
+      const atom = mockSubStore.testValue;
+
+      expect(atom.value).toBe(1);
+      expect(atom).toBeInstanceOf(Atom);
+    });
+  });
+
+  describe('watchAtom', () => {
     it('should subscribe to any store value', () => {
       mockSubStore.testValue.value = 2;
 
@@ -57,16 +79,16 @@ describe('Store tests', () => {
     });
   });
 
-  describe('computedValue', () => {
-    it('should return initial computed value', () => {
-      expect(mockStore.computed.value).toBe(false);
+  describe('deriveAtom', () => {
+    it('should return initial derived value', () => {
+      expect(mockStore.derived.value).toBe(false);
     });
 
-    it('should return updated computed value', () => {
+    it('should return updated derived value', () => {
       mockSubStore.boolValue.value = true;
       mockSubStore.stringValue.value = 'TEST';
 
-      expect(mockStore.computed.value).toBe(true);
+      expect(mockStore.derived.value).toBe(true);
     });
 
     it('should not update computed value when main store is removed', () => {
@@ -78,7 +100,7 @@ describe('Store tests', () => {
       mockSubStore.boolValue.value = true;
       mockSubStore.stringValue.value = 'TEST';
 
-      expect(mockStore.computed.value).toBe(false);
+      expect(mockStore.derived.value).toBe(false);
     });
   });
 });
