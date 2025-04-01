@@ -8,16 +8,16 @@ _Simple, atomic hub for all your application's state management needs._
 
 Nucleux is a simple, atomic state management library based on the publisher-subscriber pattern and inversion-of-control (IoC) container design principle.
 
-Nucleux allows you to have centralized locations (stores) with units of state (atoms) that your application can subscribe to. Unlike other state management libraries, Nucleux only triggers strictly-needed, isolated updates for computations (e.g. React components) subscribed to atoms.
+Nucleux allows you to create centralized stores with atomic units of state that your application can subscribe to. Unlike other state management libraries, Nucleux only triggers strictly-needed, isolated updates for computations (e.g. React components) subscribed to specific atoms.
 
-With Nucleux you can manage your application state outside of any UI framework, making your code decoupled, portable, and testable.
+With Nucleux, you can manage your application state outside of any UI framework, making your code decoupled, portable, and testable.
 
 ## Why Nucleux over other state management libraries?
 
 - Simple and un-opinionated
 - Makes hooks the primary means of consuming state
 - Less boilerplate and no provider wrapping
-- Centralized, atomic and subscription-based state management
+- Centralized, atomic, and subscription-based state management
 
 ## Table of contents
 
@@ -26,7 +26,7 @@ With Nucleux you can manage your application state outside of any UI framework, 
 - [A Quick Example](#a-quick-example)
 - [Description](#description)
 - [Detailed Usage](#detailed-usage)
-- [Dependency](#dependency-injection)
+- [Dependency Injection](#dependency-injection)
 - [Persistency](#persistency)
 - [Computed Values](#computed-values)
 - [React Native](#react-native)
@@ -65,7 +65,9 @@ const CounterView = () => {
   const count = useValue(counterStore.count);
 
   return (
-    <button onClick={counterStore.increment}>Current Count: {count}</button>
+    <button onClick={() => counterStore.increment()}>
+      Current Count: {count}
+    </button>
   );
 };
 
@@ -74,27 +76,27 @@ ReactDOM.render(<CounterView />, document.body);
 
 ## Description
 
-Nucleux leverages on two software architecture patterns:
+Nucleux leverages two core software architecture patterns:
 
-- IoC Container pattern (a.k.a. DI Container) to manage store instantiation, dependency injection and lifecycle.
-- The publisher-subscriber pattern to implement values within the stores that any JavaScript context (including React components) can subscribe and publish to.
+- IoC Container pattern (a.k.a. DI Container) to manage store instantiation, dependency injection, and lifecycle.
+- Publisher-subscriber pattern to implement atoms within stores that any JavaScript context (including React components) can subscribe and publish to.
 
 ### What's a Store?
 
-A store is essentially a bucket of atoms (values) that other JavaScript objects can subscribe and publish to. The stores live as long as they have at least one reference in the container. Once the last reference of a store is removed, the store is disposed.
+A store is essentially a container of atoms (state values) that other JavaScript objects can subscribe and publish to. Stores live as long as they have at least one reference in the container. Once the last reference of a store is removed, the store is disposed.
 
 ## Detailed Usage
 
-Let's take a closer look on how to use the library.
+Let's take a closer look at how to use the library.
 
 ### Create a store
 
-First, let's create our store. A store is a class that implements the following:
+First, let's create our store. A store is a class that implements:
 
-- Store atom(s) by calling `atom()` with an initial value (required).
-- Value setters that publish (updates) the store values (optional).
+- Store atoms by calling `this.atom()` with an initial value (required).
+- Methods that update the store atoms (optional).
 
-Note: It is a good pattern to keep your stores separate from your UI.
+Note: It's good practice to keep your stores separate from your UI.
 
 ```javascript
 import { Store } from 'nucleux';
@@ -119,34 +121,34 @@ Now that we have our store, we can use it anywhere within a JavaScript applicati
 import { Container } from 'nucleux';
 import CounterStore from './CounterStore';
 
-// get the container and store instances
-const storeContainer = Container.getInstance();
-const counterStore = storeContainer.get(CounterStore);
+// Get the container and store instances
+const container = Container.getInstance();
+const counterStore = container.get(CounterStore);
 
-// subscribe to the value
+// Subscribe to an atom
 const subscriberId = counterStore.count.subscribe((count) => {
   console.log(`Current Count: ${count}`);
 });
 
-// publish to the value
+// Update the atom
 counterStore.increment();
 counterStore.increment();
 counterStore.increment();
 
-// unsubscribe from the value
+// Unsubscribe from the atom
 counterStore.count.unsubscribe(subscriberId);
 
-// dispose the store
-storeContainer.remove(CounterStore);
+// Dispose the store
+container.remove(CounterStore);
 ```
 
 ### Use the store in a React Component
 
-All right, let's use our store in a UI using React (we'll support frameworks in the future).
+Let's use our store in a React component.
 
-First we need to get our store instance by using the `useStore`. Then we can use the hook `useValue` to subscribe to a store atom value and trigger the side effects (render).
+First, we need to get our store instance using `useStore`. Then we use the `useValue` hook to subscribe to a store atom and trigger re-renders when it changes.
 
-By using these hooks, we get automatic value un-subscription and store disposal for free when the component is unmounted.
+These hooks automatically handle atom unsubscription and store disposal when the component unmounts.
 
 ```javascript
 import React from 'react';
@@ -159,7 +161,9 @@ const CounterView = () => {
   const count = useValue(counterStore.count);
 
   return (
-    <button onClick={counterStore.increment}>Current Count: {count}</button>
+    <button onClick={() => counterStore.increment()}>
+      Current Count: {count}
+    </button>
   );
 };
 
@@ -168,15 +172,15 @@ ReactDOM.render(<CounterView />, document.body);
 
 ### See this live
 
-Please visit our [Codesandbox](https://codesandbox.io/p/sandbox/0cwlqq) to see a live example of the React usage.
+Visit our [Codesandbox](https://codesandbox.io/p/sandbox/0cwlqq) to see a live example of Nucleux with React.
 
-## Dependency (injection)
+## Dependency Injection
 
-It's important for all applications to follow software design principles, specifically separation of concerns and segregation.
+It's important for applications to follow software design principles, especially separation of concerns and segregation.
 
-With Nucleux, we can have segregated stores that contain a small meaningful portion of the application's state (atoms) and then leverage the container to inject stores into main stores.
+With Nucleux, you can have segregated stores that contain focused portions of your application's state. You can then leverage the container to inject stores into other stores.
 
-Let's say we have a store that needs to read the count value from our `CounterStore`. We can easily inject the store like this:
+Let's say we have a store that needs to read the count value from our `CounterStore`:
 
 ```javascript
 import { Store } from 'nucleux';
@@ -200,39 +204,39 @@ class ApplicationStore extends Store {
 export default ApplicationStore;
 ```
 
-By extending from `Store`, we get the automatic un-subscription for free when the store is disposed.
+By extending `Store`, you get automatic unsubscription when the store is disposed.
 
 ## Persistency
 
-In order to persist a store value, we need to specify the persist key we would like to use (has to be unique) in the second argument of `Atom`.
+To persist a store atom, specify a unique persistence key as the second argument to `this.atom()`.
 
-Every time the value is published, the value will be persisted. And, the next time the store is instantiated, the value will be rehydrated.
+When the atom's value changes, it will be persisted. The next time the store is instantiated, the value will be rehydrated.
 
 ```javascript
-// assuming CountValue was persisted as 2, count will be hydrated with 2 instead of 0
-count = new Atom(0, 'CountValue');
+// Assuming 'CountValue' was persisted as 2, count will be hydrated with 2 instead of 0
+count = this.atom(0, 'CountValue');
 
-// this will persist the new value
+// This will persist the new value
 this.count.value = currentCount + 1;
 ```
 
 ### Persistency - Custom Storage
 
-You can configure Nucleux values to use custom storage for persistency. For instance, in React Native, you can use `AsyncStorage`:
+You can configure Nucleux atoms to use custom storage for persistence. For instance, in React Native, you can use `AsyncStorage`:
 
 ```javascript
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-count = new Atom(0, 'CountValue', {
+count = this.atom(0, 'CountValue', {
   storage: AsyncStorage,
 });
 ```
 
-## Computed Values
+## Derived Values
 
-Sometimes we have complex stores with several atoms that we then need to use to derive a value from. Nucleux offers derived atoms feature, which allows us to consume store atoms, derive them in a transformer and produce a single result. To do so, we need our store to extend from `Store`.
+Sometimes you need to derive a value from several atoms. Nucleux offers a derived atoms feature that lets you consume multiple atoms, transform them, and produce a single result.
 
-Let's say we have a store that manages the user session, and we have a `isAuth` atom to determine if the user is authenticated. Now, let's say our user store depends on the API store, which has an atom `isConnected` to allow API requests. Given a requirement that we should only allow requests from authenticated users when the API is connected, we can create a computed property called `shouldMakeRequest`, like so:
+For example, let's say we have a user store that manages authentication and depends on an API store that tracks connection status. If we only want to allow requests from authenticated users when the API is connected, we can create a derived atom:
 
 ### ApiStore
 
@@ -266,7 +270,7 @@ class UserStore extends Store {
 export default UserStore;
 ```
 
-With this, `shouldMakeRequest` will watch both `isAuth` and `isConnected` atom and derive a single `boolean` atom as a result. This derived atom can be used as a regular store value anywhere in our app.
+With this, `shouldMakeRequest` will watch both the `isAuth` and `isConnected` atoms and derive a single boolean result. This derived atom can be used anywhere in your app:
 
 ```javascript
 import React, { useEffect } from 'react';
@@ -280,7 +284,7 @@ const App = () => {
 
   useEffect(() => {
     if (shouldMakeRequest) {
-      // make a fetch request
+      // Make a fetch request
     }
   }, [shouldMakeRequest]);
 
@@ -292,11 +296,13 @@ ReactDOM.render(<App />, document.body);
 
 ## React Native
 
-Nucleux uses `nanoid` for a secure unique string ID generation to create value subscriptions and store identifiers. React Native does not have built-in random generator. The following polyfill works for plain React Native and Expo starting with 39.x.
+Nucleux uses `nanoid` for secure unique ID generation for atom subscriptions and store identifiers. Since React Native doesn't have a built-in random generator, you'll need to add a polyfill.
+
+The following setup works for both plain React Native and Expo projects (version 39.x and above):
 
 ```javascript
 // App.jsx
-import 'react-native-get-random-values';
+import 'react-native-get-random-values'; // Add this polyfill before importing Nucleux
 import { View } from 'react-native';
 import { useStore, useValue } from 'nucleux';
 
@@ -306,9 +312,19 @@ export default function App() {
   const store = useStore(YourStore);
   const value = useValue(store.value);
 
-  return <View>{/* ... */}</View>;
+  return <View>{/* Your components here */}</View>;
 }
 ```
+
+First, install the required polyfill:
+
+```sh
+npm install react-native-get-random-values
+# or
+yarn add react-native-get-random-values
+```
+
+Make sure to import the polyfill at the top of your entry file before any Nucleux imports.
 
 ## Author
 
