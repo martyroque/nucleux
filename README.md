@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  <img src="docs/logo.svg" width="150" height="150" />
+  <img src="docs/logo.svg" width="200" height="200" />
 </p>
 
 <p align="center">
