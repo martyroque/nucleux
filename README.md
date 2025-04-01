@@ -7,6 +7,10 @@
 </p>
 
 <p align="center">
+  <img src="https://github.com/martyroque/nucleux/blob/main/docs/logo.svg" />
+</p>
+
+<p align="center">
   <a href="https://www.npmjs.org/package/nucleux">
     <img src="https://img.shields.io/npm/v/nucleux?color=brightgreen&label=npm%20package" alt="Current npm package version." />
   </a>
