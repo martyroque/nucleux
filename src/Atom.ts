@@ -28,7 +28,7 @@ export type SupportedStorage = PromisifyMethods<
   Pick<Storage, 'getItem' | 'setItem'>
 >;
 
-export type ValueOptions = {
+export type AtomOptions = {
   storage: SupportedStorage;
 };
 
@@ -38,7 +38,7 @@ class Atom<V> implements AtomInterface<V> {
   private persistKey?: string;
   private storage?: SupportedStorage;
 
-  constructor(initialValue: V, persistKey?: string, options?: ValueOptions) {
+  constructor(initialValue: V, persistKey?: string, options?: AtomOptions) {
     this._value = initialValue;
     this.persistKey = persistKey;
 

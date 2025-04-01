@@ -1,5 +1,11 @@
 import autoBind from 'auto-bind';
-import { Atom, AtomInterface, ReadOnlyAtomInterface } from './Atom';
+import {
+  Atom,
+  AtomInterface,
+  AtomOptions,
+  ReadOnlyAtomInterface,
+  SupportedStorage,
+} from './Atom';
 import { Injectable } from './Injectable';
 import { StoreInterface } from './types';
 
@@ -16,13 +22,21 @@ type UnwrappedValues<
 abstract class Store extends Injectable implements StoreInterface {
   private subscriptions: Map<string, (subId: string) => boolean> = new Map();
 
+  protected storage?: SupportedStorage;
+
   constructor() {
     super();
     autoBind(this);
   }
 
-  protected atom<V>(val: V): AtomInterface<V> {
-    return new Atom(val);
+  protected atom<V>(
+    initialValue: V,
+    persistKey?: string,
+    options?: AtomOptions,
+  ): AtomInterface<V> {
+    const atomOptions = options ?? (this.storage && { storage: this.storage });
+
+    return new Atom(initialValue, persistKey, atomOptions);
   }
 
   protected watchAtom<V>(
