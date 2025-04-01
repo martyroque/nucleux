@@ -3,11 +3,11 @@
 </h1>
 
 <p align="center">
-  <i>Simple, atomic hub for all your application's state management needs.</i>
+  <img src="docs/logo.svg" width="150" height="150" />
 </p>
 
 <p align="center">
-  <img src="https://github.com/martyroque/nucleux/blob/main/docs/logo.svg" />
+  <i>Simple, atomic hub for all your application's state management needs.</i>
 </p>
 
 <p align="center">
