@@ -5,12 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.1.0] - 2025-03-31
+
+### Changed
+
+- Renamed library to Nucleux.
+- Improved method naming:
+  - value() → atom()
+  - subscribeToValue() → watchAtom()
+  - computedValue() → deriveAtom()
+- Updated README with consistent terminology and improved examples.
+- Enhanced documentation clarity and formatting.
+- Kept hook names useStore and useValue for community familiarity.
+
 ## [1.0.0] - 2025-03-29
 
 ### Changed
 
 - Migrate from apps-digest for simplicity and improvements.
-- Simplify all interfaces, classes and helpers names
+- Simplify all interfaces, classes and helpers names.
 
 ## [0.4.0] - 2023-04-13
 

@@ -1,6 +1,16 @@
-# Nucleux
+<h1 align="center">
+  Nucleux
+</h1>
 
-_Simple, atomic hub for all your application's state management needs._
+<p align="center">
+  <i>Simple, atomic hub for all your application's state management needs.</i>
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.org/package/nucleux">
+    <img src="https://img.shields.io/npm/v/nucleux?color=brightgreen&label=npm%20package" alt="Current npm package version." />
+  </a>
+</p>
 
 ---
 
