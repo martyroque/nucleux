@@ -40,12 +40,12 @@ abstract class Store extends Injectable implements StoreInterface {
   }
 
   protected watchAtom<V>(
-    storeValue: ReadOnlyAtomInterface<V>,
+    atom: ReadOnlyAtomInterface<V>,
     callback: (value: V) => void,
   ): void {
-    const subId = storeValue.subscribe(callback);
+    const subId = atom.subscribe(callback);
 
-    this.subscriptions.set(subId, storeValue.unsubscribe);
+    this.subscriptions.set(subId, atom.unsubscribe);
   }
 
   protected deriveAtom<
