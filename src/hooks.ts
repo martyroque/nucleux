@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useSyncExternalStore } from 'use-sync-external-store/shim';
 
 import { Atom, AtomInterface, ReadOnlyAtomInterface } from './Atom';
@@ -102,19 +102,18 @@ function useValue<V, S extends Store, K extends keyof S>(
   atomKey?: K,
 ): V | (S[K] extends ReadOnlyAtomInterface<infer V> ? V : never) {
   if (isAtom(atomOrStore) && atomOrStore instanceof Atom) {
-    const atom = atomOrStore as ReadOnlyAtomInterface<V>;
+    const [getter, subscribe] = useMemo(() => {
+      return [
+        () => atomOrStore.value,
+        (onStoreChange: () => void) => {
+          const subId = atomOrStore.subscribe(onStoreChange);
 
-    const subscribe = useCallback(
-      (onStoreChange: () => void) => {
-        const subId = atom.subscribe(onStoreChange);
-        return () => {
-          atom.unsubscribe(subId);
-        };
-      },
-      [atom],
-    );
-
-    const getter = useCallback(() => atom.value, [atom.value]);
+          return () => {
+            atomOrStore.unsubscribe(subId);
+          };
+        },
+      ];
+    }, [atomOrStore, atomKey]);
 
     return useSyncExternalStore(subscribe, getter);
   }
