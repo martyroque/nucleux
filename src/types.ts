@@ -35,4 +35,5 @@ export {
   StoreDefinition,
   StoreInterface,
   StoreProxy,
+  StoreProxyAtoms,
 };

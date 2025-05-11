@@ -53,50 +53,91 @@ describe('hooks tests', () => {
   });
 
   describe('useValue', () => {
-    let store: MockStore;
+    describe('useValue(atom)', () => {
+      it('should return the initial value', () => {
+        const { result: store } = renderHook(() => useStore(MockStore));
+        const { result } = renderHook(() => useValue(store.current.testValue));
 
-    beforeEach(() => {
-      const { result } = renderHook(() => useStore(MockStore));
-      store = result.current;
-    });
-
-    it('should return the initial value', () => {
-      const { result } = renderHook(() => useValue(store.testValue));
-
-      expect(result.current).toBe(-1);
-    });
-
-    it('should subscribe to the value', () => {
-      const { result } = renderHook(() => useValue(store.testValue));
-
-      act(() => {
-        store.testValue.value = 2;
+        expect(result.current).toBe(-1);
       });
 
-      expect(result.current).toBe(2);
+      it('should subscribe to the value', () => {
+        const { result: store } = renderHook(() => useStore(MockStore));
+        const { result } = renderHook(() => useValue(store.current.testValue));
+
+        act(() => {
+          store.current.testValue.value = 2;
+        });
+
+        expect(result.current).toBe(2);
+      });
+
+      it('should unsubscribe from the value when unmounted', () => {
+        const { result: store } = renderHook(() => useStore(MockStore));
+        const { result, unmount, rerender } = renderHook(() =>
+          useValue(store.current.testValue),
+        );
+
+        act(() => {
+          store.current.testValue.value = 2;
+        });
+
+        // trigger some rerenders to ensure a single subscription
+        rerender();
+        rerender();
+        rerender();
+
+        unmount();
+
+        act(() => {
+          store.current.testValue.value = 3;
+        });
+
+        expect(result.current).toBe(2);
+      });
     });
 
-    it('should unsubscribe from the value when unmounted', () => {
-      const { result, unmount, rerender } = renderHook(() =>
-        useValue(store.testValue),
-      );
+    describe("useValue(store, 'atom')", () => {
+      it('should return the initial value', () => {
+        const { result } = renderHook(() => useValue(MockStore, 'testValue'));
 
-      act(() => {
-        store.testValue.value = 2;
+        expect(result.current).toBe(-1);
       });
 
-      // trigger some rerenders to ensure a single subscription
-      rerender();
-      rerender();
-      rerender();
+      it('should subscribe to the value', () => {
+        const { result: store } = renderHook(() => useStore(MockStore));
+        const { result } = renderHook(() => useValue(MockStore, 'testValue'));
 
-      unmount();
+        act(() => {
+          store.current.setTestValue(2);
+        });
 
-      act(() => {
-        store.testValue.value = 3;
+        expect(result.current).toBe(2);
       });
 
-      expect(result.current).toBe(2);
+      it('should unsubscribe from the value when unmounted', () => {
+        const { result: store } = renderHook(() => useStore(MockStore));
+        const { result, unmount, rerender } = renderHook(() =>
+          useValue(MockStore, 'testValue'),
+        );
+
+        act(() => {
+          store.current.setTestValue(2);
+        });
+
+        // trigger some rerenders to ensure a single subscription
+        rerender();
+        rerender();
+        rerender();
+
+        unmount();
+
+        act(() => {
+          store.current.setTestValue(3);
+        });
+
+        expect(result.current).toBe(2);
+      });
     });
   });
 
