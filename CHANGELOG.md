@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+## [1.2.0] - 2025-05-10
+
+### Added
+
+- New useNucleux hook for accessing all store methods and atom values
+  with a single hook
+- Overloaded useValue hook to support direct atom access via store
+  constructor and key name
+- Comprehensive JSDoc documentation for all hooks to improve developer
+  experience
+
+### Changed
+
+- Improved type safety for atom access with StoreProxyAtoms type
+  constraints
+- Enhanced error handling for invalid atom access
+
+### Fixed
+
+- Fixed potential memory leaks in subscription cleanup logic
+- Improved type inference for nested atom values
+
 ## [1.1.1] - 2025-03-31
 
 ### Changed
