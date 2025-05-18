@@ -1,6 +1,6 @@
 {
   "name": "nucleux",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Simple, atomic state management",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
