@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useSyncExternalStore } from 'use-sync-external-store/shim';
 
-import { Atom, AtomInterface, ReadOnlyAtomInterface } from './Atom';
+import { Atom, ReadOnlyAtomInterface } from './Atom';
 import { Container } from './Container';
 import { Store } from './Store';
 import { StoreConstructable, StoreProxy } from './types';
@@ -202,16 +202,6 @@ function useNucleux<S extends Store>(
 
   const [getSnapshot, subscribe] = useMemo(() => {
     const storeInstance = container.get(store);
-    const atomsToWatch: Map<string, AtomInterface<unknown>> = new Map();
-
-    for (const key in storeInstance) {
-      if (Object.prototype.hasOwnProperty.call(storeInstance, key)) {
-        const potentialAtom = storeInstance[key];
-        if (isAtom(potentialAtom) && potentialAtom instanceof Atom) {
-          atomsToWatch.set(key, potentialAtom);
-        }
-      }
-    }
 
     let proxy = getStoreProxy(storeInstance);
 
@@ -220,12 +210,19 @@ function useNucleux<S extends Store>(
         return proxy as StoreProxy<S>;
       },
       (onStoreChange: () => void) => {
-        for (const [, atom] of atomsToWatch) {
-          // @ts-expect-error protected store method
-          storeInstance.watchAtom(atom, () => {
-            proxy = getStoreProxy(storeInstance);
-            onStoreChange();
-          });
+        for (const key in storeInstance) {
+          const potentialAtom = storeInstance[key];
+          if (isAtom(potentialAtom) && potentialAtom instanceof Atom) {
+            // @ts-expect-error protected store method
+            storeInstance.watchAtom(
+              potentialAtom,
+              () => {
+                proxy = getStoreProxy(storeInstance);
+                onStoreChange();
+              },
+              true,
+            );
+          }
         }
 
         return () => {

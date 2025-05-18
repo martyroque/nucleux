@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Documentation
 
+### Fixed
+
+- Fix and improve useNucleux hook
+
 ## [1.2.0] - 2025-05-10
 
 ### Added

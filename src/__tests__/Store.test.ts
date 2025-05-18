@@ -11,6 +11,7 @@ class MockSubStore extends Store {
 }
 
 const mockSubscribeCallback = jest.fn();
+const mockSubscribeImmediateCallback = jest.fn();
 
 class MockStore extends Store {
   public subStore = this.inject(MockSubStore);
@@ -25,6 +26,11 @@ class MockStore extends Store {
   constructor() {
     super();
     this.watchAtom(this.subStore.testValue, mockSubscribeCallback);
+    this.watchAtom(
+      this.subStore.testValue,
+      mockSubscribeImmediateCallback,
+      true,
+    );
   }
 
   public getDerived() {
@@ -64,6 +70,10 @@ describe('Store tests', () => {
   });
 
   describe('watchAtom', () => {
+    it('should receive value immediately upon subscribe', () => {
+      expect(mockSubscribeImmediateCallback).toHaveBeenCalledWith(1);
+    });
+
     it('should subscribe to any store value', () => {
       mockSubStore.testValue.value = 2;
 
