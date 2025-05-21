@@ -97,6 +97,14 @@ describe('Atom tests', () => {
 
       expect(value.subscribe(() => undefined)).toBe(mockSubId);
     });
+
+    it('should get the value when immediate is set', () => {
+      const value = new Atom('immediate');
+      const callback = jest.fn();
+      value.subscribe(callback, true);
+
+      expect(callback).toHaveBeenCalledWith('immediate');
+    });
   });
 
   describe('unsubscribe tests', () => {

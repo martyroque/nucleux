@@ -2,7 +2,7 @@ import { nanoid } from 'nanoid';
 
 interface ReadOnlyAtomInterface<V> {
   readonly value: V;
-  subscribe: (callback: (value: V) => void) => string;
+  subscribe: (callback: (value: V) => void, immediate?: boolean) => string;
   unsubscribe: (subId: string) => boolean;
 }
 
@@ -95,10 +95,14 @@ class Atom<V> implements AtomInterface<V> {
     }
   }
 
-  public subscribe(callback: (value: V) => void) {
+  public subscribe(callback: (value: V) => void, immediate = false) {
     const subId = nanoid();
 
     this.subscribers.set(subId, { callback });
+
+    if (immediate) {
+      callback(this.value);
+    }
 
     return subId;
   }
