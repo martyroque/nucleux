@@ -44,13 +44,9 @@ abstract class Store extends Injectable implements StoreInterface {
     callback: (value: V) => void,
     immediate = false,
   ): void {
-    const subId = atom.subscribe(callback);
+    const subId = atom.subscribe(callback, immediate);
 
     this.subscriptions.set(subId, atom.unsubscribe);
-
-    if (immediate) {
-      callback(atom.value);
-    }
   }
 
   protected deriveAtom<
