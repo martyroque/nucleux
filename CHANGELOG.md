@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Added immediate callback option to Atom subscribe method.
 
+### Changed
+
+- Improved the README content
+- Updated description and keywords
+
 ## [1.2.1] - 2025-05-17
 
 ### Added

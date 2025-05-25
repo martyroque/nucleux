@@ -6,12 +6,12 @@
 
 # Nucleux <small>1.2.0</small>
 
-> Simple, atomic hub for all your application's state management needs.
+> Simple, atomic hub for all your React application's state management needs.
 
-- Simple and un-opinionated
-- Makes hooks the primary means of consuming state
-- Less boilerplate and no provider wrapping
-- Centralized, atomic, and subscription-based state management
+- **Zero boilerplate** - Write less, do more
+- **No providers** - Use state anywhere without wrapping components
+- **Atomic updates** - Only subscribed components re-render
+- **Framework agnostic** - Works with or without React
 
 [GitHub](https://github.com/martyroque/nucleux/)
 [Get Started](#Nucleux)
