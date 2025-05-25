@@ -1,7 +1,7 @@
 {
   "name": "nucleux",
   "version": "1.2.1",
-  "description": "Simple, atomic state management",
+  "description": "Simple, atomic hub for all your React application's state management needs. No providers, no boilerplate, just state that works.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": {
@@ -23,18 +23,21 @@
     "test": "jest"
   },
   "keywords": [
-    "atomic",
-    "state",
-    "manager",
-    "management",
     "react",
+    "state-management",
+    "atomic",
     "hooks",
-    "store",
-    "redux",
-    "pubsub",
-    "pub/sub",
-    "publish",
-    "subscribe"
+    "typescript",
+    "redux-alternative",
+    "zustand-alternative",
+    "no-providers",
+    "boilerplate-free",
+    "reactive",
+    "persistence",
+    "react-native",
+    "dependency-injection",
+    "framework-agnostic",
+    "store"
   ],
   "author": "Marty Roque",
   "license": "ISC",
