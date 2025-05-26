@@ -25,9 +25,9 @@ import { Store } from 'nucleux';
 class CounterStore extends Store {
   count = this.atom(0);
 
-  increment = () => {
+  increment() {
     this.count.value += 1;
-  };
+  }
 }
 ```
 
@@ -57,12 +57,12 @@ class TodoStore extends Store {
   todos = this.atom([]);
   filter = this.atom('all');
 
-  addTodo = (text) => {
+  addTodo(text) {
     this.todos.value = [
       ...this.todos.value,
       { id: Date.now(), text, done: false },
     ];
-  };
+  }
 }
 ```
 
@@ -190,16 +190,16 @@ import { Store, useNucleux } from 'nucleux';
 class TodoStore extends Store {
   todos = this.atom([]);
 
-  addTodo = (text) => {
+  addTodo(text) {
     const newTodo = { id: Date.now(), text, done: false };
     this.todos.value = [...this.todos.value, newTodo];
-  };
+  }
 
-  toggleTodo = (id) => {
+  toggleTodo(id) {
     this.todos.value = this.todos.value.map((todo) =>
       todo.id === id ? { ...todo, done: !todo.done } : todo,
     );
-  };
+  }
 }
 
 function TodoApp() {
@@ -261,11 +261,6 @@ function TodoApp() {
 - `useStore(StoreClass)` - Get store instance with methods
 - `useValue(atom)` or `useValue(StoreClass, 'atomKey')` - Subscribe to atom value
 - `useNucleux(StoreClass)` - Get all methods and atom values
-
-### Container (Advanced)
-
-- `Container.getInstance().get(StoreClass)` - Get store instance
-- `Container.getInstance().remove(StoreClass)` - Remove store
 
 ---
 
