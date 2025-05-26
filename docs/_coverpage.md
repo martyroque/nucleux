@@ -13,5 +13,6 @@
 - **Atomic updates** - Only subscribed components re-render
 - **Framework agnostic** - Works with or without React
 
-[GitHub](https://github.com/martyroque/nucleux/)
 [Get Started](#Nucleux)
+[Demo Sandbox](https://codesandbox.io/p/sandbox/nucleux-react-qw58s4)
+[GitHub](https://github.com/martyroque/nucleux/)
