@@ -1,13 +1,9 @@
-<h1 align="center">
-  Nucleux
-</h1>
-
 <p align="center">
-  <img src="docs/logo.svg" width="200" height="200" />
+  <img src="docs/logo.svg" width="128" height="128" />
 </p>
 
 <p align="center">
-  <i>Simple, atomic hub for all your React application's state management needs. No providers, no boilerplate, just state that works.</i>
+  <i>Simple, atomic hub for all your React application's state management needs.</i>
 </p>
 
 <p align="center">
