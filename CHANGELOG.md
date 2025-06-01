@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 
 - Updated logo view-box and reduce logo size in docs
+- Add social media meta tags to docs for improved link previews
 
 ## [1.2.2] - 2025-05-31
 
