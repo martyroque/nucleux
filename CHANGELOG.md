@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Updated logo view-box and reduce logo size in docs
+
 ## [1.2.2] - 2025-05-31
 
 ### Added

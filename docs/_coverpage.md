@@ -1,7 +1,7 @@
 <!-- _coverpage.md -->
 
 <p align="center">
-  <img src="logo.svg" width="200" height="200" />
+  <img src="logo.svg" width="128" height="128" />
 </p>
 
 # Nucleux <small>1.2.2</small>
