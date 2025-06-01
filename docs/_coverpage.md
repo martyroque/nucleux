@@ -4,7 +4,7 @@
   <img src="logo.svg" width="200" height="200" />
 </p>
 
-# Nucleux <small>1.2.0</small>
+# Nucleux <small>1.2.2</small>
 
 > Simple, atomic hub for all your React application's state management needs.
 
