@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.2.2] - 2025-05-31
+
 ### Added
 
 - Added immediate callback option to Atom subscribe method.
