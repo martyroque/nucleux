@@ -7,10 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Added social media meta tags to docs for improved link previews.
+- Added favicon to the docs.
+
 ### Changed
 
-- Updated logo view-box and reduce logo size in docs
-- Add social media meta tags to docs for improved link previews
+- Updated logo view-box and reduce logo size in docs.
 
 ## [1.2.2] - 2025-05-31
 
