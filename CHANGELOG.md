@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Added social media meta tags to docs for improved link previews.
 - Added favicon to the docs.
+- Added docs analytics.
 
 ### Changed
 
