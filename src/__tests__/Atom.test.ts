@@ -33,19 +33,163 @@ describe('Atom tests', () => {
       expect(value.value).toBe('test');
     });
 
+    describe('memoization tests', () => {
+      describe('shallow memoization (default)', () => {
+        it('should publish when value changes', () => {
+          const value = new Atom('initial');
+          const callback = jest.fn();
+          value.subscribe(callback);
+
+          value.value = 'changed';
+
+          expect(callback).toHaveBeenCalledWith('changed');
+        });
+
+        it('should skip publish when value is identical', () => {
+          const value = new Atom('test');
+          const callback = jest.fn();
+          value.subscribe(callback);
+
+          value.value = 'test';
+
+          expect(callback).not.toHaveBeenCalled();
+        });
+
+        it('should skip publish for same object reference', () => {
+          const obj = { name: 'John' };
+          const value = new Atom(obj);
+          const callback = jest.fn();
+          value.subscribe(callback);
+
+          value.value = obj;
+
+          expect(callback).not.toHaveBeenCalled();
+        });
+      });
+
+      describe('deep memoization', () => {
+        it('should skip publish when object content is identical', () => {
+          const value = new Atom(
+            { name: 'John', age: 30 },
+            {
+              memoization: { type: 'deep' },
+            },
+          );
+          const callback = jest.fn();
+          value.subscribe(callback);
+
+          value.value = { name: 'John', age: 30 };
+
+          expect(callback).not.toHaveBeenCalled();
+        });
+
+        it('should publish when object content changes', () => {
+          const value = new Atom(
+            { name: 'John', age: 30 },
+            {
+              memoization: { type: 'deep' },
+            },
+          );
+          const callback = jest.fn();
+          value.subscribe(callback);
+
+          value.value = { name: 'John', age: 31 };
+
+          expect(callback).toHaveBeenCalledWith({ name: 'John', age: 31 });
+        });
+
+        it('should handle arrays with deep equality', () => {
+          const value = new Atom([1, 2, 3], {
+            memoization: { type: 'deep' },
+          });
+          const callback = jest.fn();
+          value.subscribe(callback);
+
+          value.value = [1, 2, 3];
+
+          expect(callback).not.toHaveBeenCalled();
+        });
+
+        it('should handle nested objects with deep equality', () => {
+          const value = new Atom(
+            { user: { name: 'John', settings: { theme: 'dark' } } },
+            {
+              memoization: { type: 'deep' },
+            },
+          );
+          const callback = jest.fn();
+          value.subscribe(callback);
+
+          value.value = { user: { name: 'John', settings: { theme: 'dark' } } };
+
+          expect(callback).not.toHaveBeenCalled();
+        });
+      });
+
+      describe('custom memoization', () => {
+        it('should use custom comparator function', () => {
+          const value = new Atom(
+            { name: 'John', age: 25 },
+            {
+              memoization: {
+                type: 'custom',
+                compare: (a, b) => a.name === b.name,
+              },
+            },
+          );
+          const callback = jest.fn();
+          value.subscribe(callback);
+
+          value.value = { name: 'John', age: 30 };
+
+          expect(callback).not.toHaveBeenCalled();
+        });
+
+        it('should publish when custom comparator returns false', () => {
+          const value = new Atom(
+            { name: 'John', age: 25 },
+            {
+              memoization: {
+                type: 'custom',
+                compare: (a, b) => a.name === b.name,
+              },
+            },
+          );
+          const callback = jest.fn();
+          value.subscribe(callback);
+
+          value.value = { name: 'Jane', age: 25 };
+
+          expect(callback).toHaveBeenCalledWith({ name: 'Jane', age: 25 });
+        });
+
+        it('should fallback to shallow equality when compare function is not provided', () => {
+          const value = new Atom('test', {
+            memoization: { type: 'custom' },
+          });
+          const callback = jest.fn();
+          value.subscribe(callback);
+
+          value.value = 'test';
+
+          expect(callback).not.toHaveBeenCalled();
+        });
+      });
+    });
+
     describe('persistency on publish tests', () => {
       it('should persist the new value if persist key is defined', async () => {
         const expectedValue = 'initial value';
-        const persistedKey = 'persisted_key';
+        const persistKey = 'persisted_key';
         const newValue = 'test';
-        const value = new Atom(expectedValue, persistedKey);
+        const value = new Atom(expectedValue, { persistence: { persistKey } });
 
         await new Promise(process.nextTick);
 
         value.value = newValue;
 
         expect(setItemSpy).toHaveBeenCalledWith(
-          persistedKey,
+          persistKey,
           JSON.stringify(newValue),
         );
       });
@@ -59,8 +203,8 @@ describe('Atom tests', () => {
       });
 
       it('should not persist the new value if persist key is defined and value has not changed', () => {
-        const persistedKey = 'persisted_key';
-        const value = new Atom(2, persistedKey);
+        const persistKey = 'persisted_key';
+        const value = new Atom(2, { persistence: { persistKey } });
         setItemSpy.mockClear();
 
         value.value = 2;
@@ -69,11 +213,29 @@ describe('Atom tests', () => {
       });
 
       it('should not persist the new value if persist key is defined and value is undefined', () => {
-        const persistedKey = 'persisted_key';
-        const value = new Atom<number | undefined>(2, persistedKey);
+        const persistKey = 'persisted_key';
+        const value = new Atom<number | undefined>(2, {
+          persistence: { persistKey },
+        });
         setItemSpy.mockClear();
 
         value.value = undefined;
+
+        expect(setItemSpy).not.toHaveBeenCalled();
+      });
+
+      it('should not persist when memoization prevents update', () => {
+        const persistKey = 'memoized_key';
+        const value = new Atom(
+          { name: 'John' },
+          {
+            persistence: { persistKey },
+            memoization: { type: 'deep' },
+          },
+        );
+        setItemSpy.mockClear();
+
+        value.value = { name: 'John' };
 
         expect(setItemSpy).not.toHaveBeenCalled();
       });
@@ -130,29 +292,29 @@ describe('Atom tests', () => {
   describe('persistency tests', () => {
     it('should hydrate persisted value when persisted value exists', async () => {
       const expectedValue = [1, 2, 3];
-      const persistedKey = 'persisted_key';
-      new Atom(expectedValue, persistedKey);
+      const persistKey = 'persisted_key';
+      new Atom(expectedValue, { persistence: { persistKey } });
 
       await new Promise(process.nextTick);
 
-      const value = new Atom(null, persistedKey);
+      const value = new Atom(null, { persistence: { persistKey } });
 
       await new Promise(process.nextTick);
 
-      expect(getItemSpy).toHaveBeenCalledWith(persistedKey);
+      expect(getItemSpy).toHaveBeenCalledWith(persistKey);
       expect(value.value).toEqual(expectedValue);
     });
 
     it('should create new persisted value when persisted value does not exist', async () => {
       const expectedValue = false;
-      const persistedKey = 'persisted_key';
+      const persistKey = 'persisted_key';
 
-      const value = new Atom(expectedValue, persistedKey);
+      const value = new Atom(expectedValue, { persistence: { persistKey } });
 
       await new Promise(process.nextTick);
 
       expect(setItemSpy).toHaveBeenCalledWith(
-        persistedKey,
+        persistKey,
         JSON.stringify(expectedValue),
       );
       expect(value.value).toEqual(expectedValue);
@@ -174,33 +336,33 @@ describe('Atom tests', () => {
 
       it('should hydrate persisted value when persisted value exists', async () => {
         const expectedValue = [1, 2, 3];
-        const persistedKey = 'persisted_key';
+        const persistKey = 'persisted_key';
         customStorage.getItem.mockReturnValueOnce(
           Promise.resolve(JSON.stringify(expectedValue)),
         );
 
-        const value = new Atom(null, persistedKey, {
-          storage: customStorage,
+        const value = new Atom(null, {
+          persistence: { persistKey, storage: customStorage },
         });
 
         await new Promise(process.nextTick);
 
-        expect(customStorage.getItem).toHaveBeenCalledWith(persistedKey);
+        expect(customStorage.getItem).toHaveBeenCalledWith(persistKey);
         expect(value.value).toEqual(expectedValue);
       });
 
       it('should create new persisted value when persisted value does not exist', async () => {
         const expectedValue = false;
-        const persistedKey = 'persisted_key';
+        const persistKey = 'persisted_key';
 
-        const value = new Atom(expectedValue, persistedKey, {
-          storage: customStorage,
+        const value = new Atom(expectedValue, {
+          persistence: { persistKey, storage: customStorage },
         });
 
         await new Promise(process.nextTick);
 
         expect(customStorage.setItem).toHaveBeenCalledWith(
-          persistedKey,
+          persistKey,
           JSON.stringify(expectedValue),
         );
         expect(value.value).toEqual(expectedValue);
