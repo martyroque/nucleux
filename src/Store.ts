@@ -2,6 +2,7 @@ import autoBind from 'auto-bind';
 import {
   Atom,
   AtomInterface,
+  AtomMemoizationOptions,
   AtomOptions,
   ReadOnlyAtomInterface,
   SupportedStorage,
@@ -31,12 +32,21 @@ abstract class Store extends Injectable implements StoreInterface {
 
   protected atom<V>(
     initialValue: V,
-    persistKey?: string,
-    options?: AtomOptions,
+    options?: AtomOptions<V>,
   ): AtomInterface<V> {
-    const atomOptions = options ?? (this.storage && { storage: this.storage });
+    let atomOptions = options;
 
-    return new Atom(initialValue, persistKey, atomOptions);
+    if (options?.persistence && !options.persistence.storage && this.storage) {
+      atomOptions = {
+        ...options,
+        persistence: {
+          ...options.persistence,
+          storage: this.storage,
+        },
+      };
+    }
+
+    return new Atom(initialValue, atomOptions);
   }
 
   protected watchAtom<V>(
@@ -57,6 +67,7 @@ abstract class Store extends Injectable implements StoreInterface {
   >(
     sourceAtoms: A,
     transformer: (...args: UnwrappedValues<A>) => V,
+    memoization?: AtomMemoizationOptions<V>,
   ): ReadOnlyAtomInterface<V> {
     function getDerivedValue(): V {
       const values = sourceAtoms.map((atom) => {
@@ -66,7 +77,7 @@ abstract class Store extends Injectable implements StoreInterface {
       return transformer(...(values as UnwrappedValues<A>));
     }
 
-    const derivedAtom = new Atom(getDerivedValue());
+    const derivedAtom = new Atom(getDerivedValue(), { memoization });
 
     function computedValueCallback() {
       const newComputedValue = getDerivedValue();

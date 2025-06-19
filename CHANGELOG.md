@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added social media meta tags to docs for improved link previews.
 - Added favicon to the docs.
 - Added docs analytics.
+- Added layered memoization support to atoms and derived atoms with
+  shallow (default), deep, and custom comparator options to further
+  improve atom updates and component re-renders.
 
 ### Changed
 

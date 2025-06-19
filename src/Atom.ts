@@ -1,3 +1,4 @@
+import isEqual from 'fast-deep-equal/es6';
 import { nanoid } from 'nanoid';
 
 interface ReadOnlyAtomInterface<V> {
@@ -28,23 +29,31 @@ export type SupportedStorage = PromisifyMethods<
   Pick<Storage, 'getItem' | 'setItem'>
 >;
 
-export type AtomOptions = {
-  storage: SupportedStorage;
-};
+export interface AtomMemoizationOptions<V> {
+  type: 'shallow' | 'deep' | 'custom';
+  compare?: (a: V, b: V) => boolean;
+}
+
+export interface AtomPersistenceOptions {
+  persistKey: string;
+  storage?: SupportedStorage;
+}
+
+export interface AtomOptions<V> {
+  persistence?: AtomPersistenceOptions;
+  memoization?: AtomMemoizationOptions<V>;
+}
 
 class Atom<V> implements AtomInterface<V> {
   private _value: V;
   private subscribers: Map<string, Subscriber<V>> = new Map();
-  private persistKey?: string;
-  private storage?: SupportedStorage;
+  private persistence?: AtomPersistenceOptions;
+  private memoization?: AtomMemoizationOptions<V>;
 
-  constructor(initialValue: V, persistKey?: string, options?: AtomOptions) {
+  constructor(initialValue: V, options?: AtomOptions<V>) {
     this._value = initialValue;
-    this.persistKey = persistKey;
-
-    if (persistKey) {
-      this.storage = options?.storage || localStorage;
-    }
+    this.persistence = options?.persistence;
+    this.memoization = options?.memoization;
 
     this.subscribe = this.subscribe.bind(this);
     this.unsubscribe = this.unsubscribe.bind(this);
@@ -53,25 +62,39 @@ class Atom<V> implements AtomInterface<V> {
   }
 
   private async hydrate() {
-    if (this.persistKey && this.storage) {
-      const rawPersistedValue = await this.storage.getItem(this.persistKey);
+    if (this.persistence) {
+      const { persistKey, storage = localStorage } = this.persistence;
+      const rawPersistedValue = await storage.getItem(persistKey);
 
       if (rawPersistedValue) {
         try {
           const persistedValue: V = JSON.parse(rawPersistedValue);
-
           this.value = persistedValue;
         } catch (error) {
           console.error(
-            `Could not parse value ${rawPersistedValue} for ${this.persistKey}. Error:`,
+            `Could not parse value ${rawPersistedValue} for ${persistKey}. Error:`,
             error,
           );
         }
       } else {
         // fire-and-forget
-        this.storage.setItem(this.persistKey, JSON.stringify(this.value));
+        storage.setItem(persistKey, JSON.stringify(this.value));
       }
     }
+  }
+
+  private shouldSkipUpdate(newValue: V): boolean {
+    const { type, compare } = this.memoization || { type: 'shallow' };
+
+    if (type === 'deep') {
+      return isEqual(newValue, this.value);
+    }
+
+    if (type === 'custom') {
+      return compare ? compare(newValue, this.value) : newValue === this.value;
+    }
+
+    return newValue === this.value;
   }
 
   public get value(): V {
@@ -79,15 +102,16 @@ class Atom<V> implements AtomInterface<V> {
   }
 
   public set value(newValue: V) {
-    if (newValue === this.value) {
+    if (this.shouldSkipUpdate(newValue)) {
       return;
     }
 
     this._value = newValue;
 
-    if (newValue !== undefined && this.persistKey && this.storage) {
+    if (newValue !== undefined && this.persistence) {
+      const { persistKey, storage = localStorage } = this.persistence;
       // fire-and-forget
-      this.storage.setItem(this.persistKey, JSON.stringify(newValue));
+      storage.setItem(persistKey, JSON.stringify(newValue));
     }
 
     for (const [, subscriber] of this.subscribers) {
