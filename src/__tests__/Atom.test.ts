@@ -267,6 +267,16 @@ describe('Atom tests', () => {
 
       expect(callback).toHaveBeenCalledWith('immediate');
     });
+
+    it('should get the previous value when required by arity', () => {
+      const value = new Atom('previous');
+      const callback = jest.fn((current, previous) => ({ current, previous }));
+      value.subscribe(callback, true);
+
+      value.value = 'current';
+
+      expect(callback).toHaveBeenCalledWith('current', 'previous');
+    });
   });
 
   describe('unsubscribe tests', () => {

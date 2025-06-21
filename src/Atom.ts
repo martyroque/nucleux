@@ -3,7 +3,10 @@ import { nanoid } from 'nanoid';
 
 interface ReadOnlyAtomInterface<V> {
   readonly value: V;
-  subscribe: (callback: (value: V) => void, immediate?: boolean) => string;
+  subscribe: (
+    callback: (value: V, previousValue?: V) => void,
+    immediate?: boolean,
+  ) => string;
   unsubscribe: (subId: string) => boolean;
 }
 
@@ -12,7 +15,7 @@ interface AtomInterface<V> extends ReadOnlyAtomInterface<V> {
 }
 
 type Subscriber<V> = {
-  callback: (value: V) => void;
+  callback: (value: V, previousValue?: V) => void;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -97,6 +100,20 @@ class Atom<V> implements AtomInterface<V> {
     return newValue === this.value;
   }
 
+  private notifySubscribers(newValue: V, previousValue: V): void {
+    for (const [, subscriber] of this.subscribers) {
+      try {
+        if (subscriber.callback.length === 2) {
+          subscriber.callback(newValue, previousValue);
+        } else {
+          subscriber.callback(newValue);
+        }
+      } catch (error) {
+        console.error('Error in atom subscriber:', error);
+      }
+    }
+  }
+
   public get value(): V {
     return this._value;
   }
@@ -106,6 +123,7 @@ class Atom<V> implements AtomInterface<V> {
       return;
     }
 
+    const previousValue = this._value;
     this._value = newValue;
 
     if (newValue !== undefined && this.persistence) {
@@ -114,12 +132,13 @@ class Atom<V> implements AtomInterface<V> {
       storage.setItem(persistKey, JSON.stringify(newValue));
     }
 
-    for (const [, subscriber] of this.subscribers) {
-      subscriber.callback(this.value);
-    }
+    this.notifySubscribers(newValue, previousValue);
   }
 
-  public subscribe(callback: (value: V) => void, immediate = false) {
+  public subscribe(
+    callback: (value: V, previousValue?: V) => void,
+    immediate = false,
+  ) {
     const subId = nanoid();
 
     this.subscribers.set(subId, { callback });

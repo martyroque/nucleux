@@ -7,8 +7,10 @@ import {
   ReadOnlyAtomInterface,
   SupportedStorage,
 } from './Atom';
+import { logAtomChange } from './debug-utils';
 import { Injectable } from './Injectable';
 import { StoreInterface } from './types';
+import { isAtom } from './utils';
 
 type UnwrappedValue<T> = T extends ReadOnlyAtomInterface<infer R> ? R : T;
 
@@ -51,7 +53,7 @@ abstract class Store extends Injectable implements StoreInterface {
 
   protected watchAtom<V>(
     atom: ReadOnlyAtomInterface<V>,
-    callback: (value: V) => void,
+    callback: (value: V, previousValue?: V) => void,
     immediate = false,
   ): void {
     const subId = atom.subscribe(callback, immediate);
@@ -90,6 +92,27 @@ abstract class Store extends Injectable implements StoreInterface {
     });
 
     return derivedAtom;
+  }
+
+  public enableDebug(): void {
+    console.log(
+      `Nucleux debugging enabled for store: ${this.constructor.name}`,
+    );
+
+    for (const key in this) {
+      const potentialAtom = this[key as keyof typeof this];
+      if (isAtom(potentialAtom) && potentialAtom instanceof Atom) {
+        this.watchAtom(potentialAtom, (newValue, previousValue) => {
+          logAtomChange({
+            storeName: this.constructor.name,
+            atomName: key,
+            newValue,
+            previousValue,
+            timestamp: Date.now(),
+          });
+        });
+      }
+    }
   }
 
   public destroy(): void {
