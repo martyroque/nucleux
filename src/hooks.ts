@@ -55,7 +55,7 @@ function useStore<S extends Store>(store: StoreConstructable<S>): S {
     ];
   }, [store]);
 
-  return useSyncExternalStore(cleanup, getStore);
+  return useSyncExternalStore(cleanup, getStore, getStore);
 }
 
 /**
@@ -115,7 +115,7 @@ function useValue<V, S extends Store, K extends keyof S>(
       ];
     }, [atomOrStore, atomKey]);
 
-    return useSyncExternalStore(subscribe, getter);
+    return useSyncExternalStore(subscribe, getter, getter);
   }
 
   if (atomKey !== undefined) {
@@ -145,7 +145,7 @@ function useValue<V, S extends Store, K extends keyof S>(
       ];
     }, [atomOrStore, atomKey]);
 
-    return useSyncExternalStore(subscribe, getter);
+    return useSyncExternalStore(subscribe, getter, getter);
   }
 
   throw new Error('Invalid arguments to useValue');
@@ -232,7 +232,7 @@ function useNucleux<S extends Store>(
     ];
   }, [store]);
 
-  return useSyncExternalStore(subscribe, getSnapshot);
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
 export { useNucleux, useStore, useValue };
