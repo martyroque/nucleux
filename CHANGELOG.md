@@ -15,10 +15,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added layered memoization support to atoms and derived atoms with
   shallow (default), deep, and custom comparator options to further
   improve atom updates and component re-renders.
+- Added `enableDebug()` to Store class for console-based debugging.
+- Enhanced atom subscribe method to support previous value in callbacks.
+- Console logging for atom changes with previous/current values and
+  timestamps.
 
 ### Changed
 
 - Updated logo view-box and reduce logo size in docs.
+- Updated atom subscribe callback signature to optionally include
+  previous value.
+- Improved atom subscriber error handling.
+
+### Fixed
+
+- Fixed NextJS SSR compatibility by adding getServerSnapshot parameter
+  to useSyncExternalStore hooks.
 
 ## [1.2.2] - 2025-05-31
 
