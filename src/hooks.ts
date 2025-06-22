@@ -102,7 +102,7 @@ function useValue<V, S extends Store, K extends keyof S>(
   atomKey?: K,
 ): V | (S[K] extends ReadOnlyAtomInterface<infer V> ? V : never) {
   if (isAtom(atomOrStore) && atomOrStore instanceof Atom) {
-    const [getter, subscribe] = useMemo(() => {
+    const [getter, subscribe, getServerSnapshot] = useMemo(() => {
       return [
         () => atomOrStore.value,
         (onStoreChange: () => void) => {
@@ -112,14 +112,15 @@ function useValue<V, S extends Store, K extends keyof S>(
             atomOrStore.unsubscribe(subId);
           };
         },
+        () => atomOrStore.initialValue,
       ];
     }, [atomOrStore, atomKey]);
 
-    return useSyncExternalStore(subscribe, getter, getter);
+    return useSyncExternalStore(subscribe, getter, getServerSnapshot);
   }
 
   if (atomKey !== undefined) {
-    const [getter, subscribe] = useMemo(() => {
+    const [getter, subscribe, getServerSnapshot] = useMemo(() => {
       const container = Container.getInstance();
       const storeInstance = container.get(atomOrStore as StoreConstructable<S>);
 
@@ -142,10 +143,11 @@ function useValue<V, S extends Store, K extends keyof S>(
             container.remove(atomOrStore as StoreConstructable<S>);
           };
         },
+        () => typedAtom.initialValue,
       ];
     }, [atomOrStore, atomKey]);
 
-    return useSyncExternalStore(subscribe, getter, getter);
+    return useSyncExternalStore(subscribe, getter, getServerSnapshot);
   }
 
   throw new Error('Invalid arguments to useValue');
@@ -200,15 +202,18 @@ function useNucleux<S extends Store>(
 ): StoreProxy<S> {
   const container = Container.getInstance();
 
-  const [getSnapshot, subscribe] = useMemo(() => {
+  const [getSnapshot, subscribe, getServerSnapshot] = useMemo(() => {
     const storeInstance = container.get(store);
 
     let proxy = getStoreProxy(storeInstance);
 
+    const getSnapshotFn = () => proxy as StoreProxy<S>;
+
+    const getServerSnapshotFn = () =>
+      getStoreProxy(storeInstance, true) as StoreProxy<S>;
+
     return [
-      () => {
-        return proxy as StoreProxy<S>;
-      },
+      getSnapshotFn,
       (onStoreChange: () => void) => {
         for (const key in storeInstance) {
           const potentialAtom = storeInstance[key];
@@ -229,10 +234,11 @@ function useNucleux<S extends Store>(
           container.remove(store);
         };
       },
+      getServerSnapshotFn,
     ];
   }, [store]);
 
-  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
 export { useNucleux, useStore, useValue };
