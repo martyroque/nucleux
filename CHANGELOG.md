@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Enhanced atom subscribe method to support previous value in callbacks.
 - Console logging for atom changes with previous/current values and
   timestamps.
+- Added initialValue property to atom interfaces for accessing the
+  original atom value.
+- Added isServerSnapshot parameter to getStoreProxy utility function for
+  SSR support.
 
 ### Changed
 
@@ -26,11 +30,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Updated atom subscribe callback signature to optionally include
   previous value.
 - Improved atom subscriber error handling.
+- Updated all hooks (useStore, useValue, useNucleux) to provide proper
+  server-side snapshots for SSR.
+- Moved `use-sync-external-store` as a peer dependency.
 
 ### Fixed
 
 - Fixed NextJS SSR compatibility by adding getServerSnapshot parameter
   to useSyncExternalStore hooks.
+- Fixed SSR hydration mismatches for persisted atoms by using initial
+  values on server-side rendering.
 
 ## [1.2.2] - 2025-05-31
 

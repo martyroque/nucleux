@@ -3,6 +3,7 @@ import { nanoid } from 'nanoid';
 
 interface ReadOnlyAtomInterface<V> {
   readonly value: V;
+  readonly initialValue: V;
   subscribe: (
     callback: (value: V, previousValue?: V) => void,
     immediate?: boolean,
@@ -49,12 +50,14 @@ export interface AtomOptions<V> {
 
 class Atom<V> implements AtomInterface<V> {
   private _value: V;
+  private _initialValue: V;
   private subscribers: Map<string, Subscriber<V>> = new Map();
   private persistence?: AtomPersistenceOptions;
   private memoization?: AtomMemoizationOptions<V>;
 
   constructor(initialValue: V, options?: AtomOptions<V>) {
     this._value = initialValue;
+    this._initialValue = initialValue;
     this.persistence = options?.persistence;
     this.memoization = options?.memoization;
 
@@ -112,6 +115,10 @@ class Atom<V> implements AtomInterface<V> {
         console.error('Error in atom subscriber:', error);
       }
     }
+  }
+
+  public get initialValue(): V {
+    return this._initialValue;
   }
 
   public get value(): V {

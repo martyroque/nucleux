@@ -21,22 +21,27 @@ function generateStoreDefinition<S>(
   };
 }
 
-function getStoreProxy<S extends Store>(storeInstance: S) {
+function getStoreProxy<S extends Store>(
+  storeInstance: S,
+  isServerSnapshot = false,
+) {
   return new Proxy(storeInstance, {
     get(_, prop): unknown {
       const key = prop.toString();
 
       if (Object.prototype.hasOwnProperty.call(storeInstance, key)) {
-        const value = storeInstance[key as keyof S];
+        const storeMember = storeInstance[key as keyof S];
 
         // Check for method first
-        if (isFunction(value)) {
-          return value.bind(storeInstance);
+        if (isFunction(storeMember)) {
+          return storeMember.bind(storeInstance);
         }
 
         // Then check for atom
-        if (isAtom(value) && value instanceof Atom) {
-          return value.value;
+        if (isAtom(storeMember) && storeMember instanceof Atom) {
+          return isServerSnapshot
+            ? storeMember.initialValue
+            : storeMember.value;
         }
       }
 
