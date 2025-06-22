@@ -91,14 +91,69 @@ const todo = useNucleux(TodoStore);
 
 ## Advanced Features
 
+### Memoization
+
+Further improve atom updates and component re-renders:
+
+```javascript
+class AppStore extends Store {
+  // Shallow memoization (default) - compares by reference
+  count = this.atom(0);
+
+  // Deep memoization - compares object content
+  user = this.atom(
+    { name: 'John', age: 30 },
+    { memoization: { type: 'deep' } },
+  );
+
+  // Custom memoization - use your own comparison logic
+  product = this.atom(
+    { name: 'Laptop', price: 999.99, discount: 10 },
+    {
+      memoization: {
+        type: 'custom',
+        compare: (a, b) => a.name === b.name && a.price === b.price,
+      },
+    },
+  );
+}
+```
+
+Works with derived atoms too:
+
+```javascript
+class TodoStore extends Store {
+  todos = this.atom([]);
+  filter = this.atom('all');
+
+  // Further improve updates when filtered result content is the same
+  filteredTodos = this.deriveAtom(
+    [this.todos, this.filter],
+    (todos, filter) => todos.filter((t) => t.status === filter),
+    { type: 'deep' },
+  );
+}
+```
+
 ### Persistence
 
 Save state automatically:
 
 ```javascript
 class UserStore extends Store {
-  // Persists to localStorage with key 'user-preferences'
-  preferences = this.atom({ theme: 'dark' }, 'user-preferences');
+  // Simple persistence
+  theme = this.atom('dark', { persistence: { persistKey: 'theme' } });
+
+  // With custom storage
+  profile = this.atom(
+    { name: '', email: '' },
+    {
+      persistence: {
+        persistKey: 'profile',
+        storage: AsyncStorage,
+      },
+    },
+  );
 }
 ```
 
@@ -111,7 +166,6 @@ class TodoStore extends Store {
   todos = this.atom([]);
   filter = this.atom('all');
 
-  // Automatically updates when todos or filter changes
   filteredTodos = this.deriveAtom(
     [this.todos, this.filter],
     (todos, filter) => {
@@ -134,7 +188,6 @@ class NotificationStore extends Store {
 
   constructor() {
     super();
-    // Watch for user changes
     this.watchAtom(this.userStore.currentUser, (user) => {
       if (user) this.loadNotifications(user.id);
     });
@@ -144,26 +197,58 @@ class NotificationStore extends Store {
 
 ### Custom Storage (React Native)
 
-Option 1: Set storage for the entire store:
+Set storage for entire store:
 
 ```javascript
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 class AppStore extends Store {
-  storage = AsyncStorage; // All persistent atoms will use AsyncStorage
+  storage = AsyncStorage;
 
-  settings = this.atom({ notifications: true }, 'app-settings');
-  preferences = this.atom({ theme: 'dark' }, 'user-preferences');
+  settings = this.atom(
+    { notifications: true },
+    { persistence: { persistKey: 'settings' } },
+  );
 }
 ```
 
-Option 2: Set storage per atom:
+Or per atom:
 
 ```javascript
 class AppStore extends Store {
-  settings = this.atom({ notifications: true }, 'app-settings', {
-    storage: AsyncStorage,
-  });
+  settings = this.atom(
+    { notifications: true },
+    {
+      persistence: {
+        persistKey: 'settings',
+        storage: AsyncStorage,
+      },
+    },
+  );
+}
+```
+
+### Debugging
+
+Track atom changes during development:
+
+```javascript
+class TodoStore extends Store {
+  todos = this.atom([]);
+  filter = this.atom('all');
+
+  constructor() {
+    super();
+
+    // Enable debugging in development
+    if (process.env.NODE_ENV === 'development') {
+      this.enableDebug();
+    }
+  }
+
+  addTodo(text) {
+    this.todos.value = [...this.todos.value, { id: Date.now(), text }];
+  }
 }
 ```
 
@@ -251,16 +336,124 @@ function TodoApp() {
 
 ### Store Methods
 
-- `this.atom(initialValue, persistKey?, storage?)` - Create reactive state
-- `this.deriveAtom(atoms[], computeFn)` - Create computed state
-- `this.inject(StoreClass)` - Inject another store
-- `this.watchAtom(atom, callback)` - Watch atom changes
+#### `this.atom(initialValue, options?)`
+
+Create reactive state.
+
+**Options:**
+
+- `persistence` - Auto-save to storage
+  - `persistKey: string` - Storage key
+  - `storage?: SupportedStorage` - Custom storage (defaults to localStorage)
+- `memoization` - Control when updates trigger
+  - `type: 'shallow' | 'deep' | 'custom'` - Comparison strategy
+  - `compare?: (a, b) => boolean` - Custom comparator (for `type: 'custom'`)
+
+```javascript
+// Simple atom
+count = this.atom(0);
+
+// With persistence
+theme = this.atom('dark', {
+  persistence: { persistKey: 'app-theme' },
+});
+
+// With memoization
+user = this.atom(
+  { name: 'John' },
+  {
+    memoization: { type: 'deep' },
+  },
+);
+
+// Combined options
+profile = this.atom(
+  { name: '', email: '' },
+  {
+    persistence: { persistKey: 'profile' },
+    memoization: { type: 'deep' },
+  },
+);
+```
+
+#### `this.deriveAtom(atoms[], computeFn, memoization?)`
+
+Create computed state that updates when source atoms change.
+
+```javascript
+filteredTodos = this.deriveAtom(
+  [this.todos, this.filter],
+  (todos, filter) => todos.filter((t) => t.status === filter),
+  { type: 'deep' }, // Optional memoization
+);
+```
+
+#### `this.inject(StoreClass)`
+
+Inject another store as a dependency.
+
+```javascript
+userStore = this.inject(UserStore);
+```
+
+#### `this.watchAtom(atom, callback, immediate?)`
+
+Watch atom changes within the store.
+
+```javascript
+constructor() {
+  super();
+  this.watchAtom(this.user, (newUser, prevUser) => {
+    console.log('User changed:', newUser);
+  });
+}
+```
+
+#### `this.enableDebug()`
+
+Enable console logging for all atom changes in the store.
+
+```javascript
+constructor() {
+  super();
+
+  // Enable debugging in development
+  if (process.env.NODE_ENV === 'development') {
+    this.enableDebug();
+  }
+}
+```
 
 ### React Hooks
 
-- `useStore(StoreClass)` - Get store instance with methods
-- `useValue(atom)` or `useValue(StoreClass, 'atomKey')` - Subscribe to atom value
-- `useNucleux(StoreClass)` - Get all methods and atom values
+#### `useStore(StoreClass)`
+
+Get store instance with methods.
+
+```javascript
+const todoStore = useStore(TodoStore);
+todoStore.addTodo('New task');
+```
+
+#### `useValue(atom)` or `useValue(StoreClass, 'atomKey')`
+
+Subscribe to atom value.
+
+```javascript
+// Direct atom access
+const todos = useValue(todoStore.todos);
+
+// Store + key access
+const todos = useValue(TodoStore, 'todos');
+```
+
+#### `useNucleux(StoreClass)`
+
+Get all methods and atom values.
+
+```javascript
+const { todos, addTodo, removeTodo } = useNucleux(TodoStore);
+```
 
 ---
 

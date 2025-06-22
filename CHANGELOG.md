@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.3.0] - 2025-06-22
+
 ### Added
 
 - Added social media meta tags to docs for improved link previews.
