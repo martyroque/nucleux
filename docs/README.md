@@ -473,6 +473,10 @@ const { todos, addTodo, removeTodo } = useNucleux(TodoStore);
 
 Copyright © 2025 [Marty Roque](https://github.com/martyroque).
 
-<a target="_blank" href="https://betalist.com/startups/nucleux?utm_campaign=badge-nucleux&utm_medium=badge&utm_source=badge-featured">
-  <img alt="Nucleux - Atomic state management for React without providers or boilerplate | BetaList" width="156" height="54" style="width: 156px; height: 54px" src="https://betalist.com/badges/featured?id=126517&theme=dark">
-</a>
+---
+
+<center>
+  <a target="_blank" href="https://betalist.com/startups/nucleux?utm_campaign=badge-nucleux&utm_medium=badge&utm_source=badge-featured">
+    <img alt="Nucleux - Atomic state management for React without providers or boilerplate | BetaList" width="156" height="54" style="width: 156px; height: 54px" src="https://betalist.com/badges/featured?id=126517&theme=dark">
+  </a>
+</center>
