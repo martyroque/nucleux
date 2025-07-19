@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Added BetaList featured badge.
+
 ## [1.3.0] - 2025-06-22
 
 ### Added
