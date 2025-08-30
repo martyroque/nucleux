@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added `resetValues()` convenience method to Store class for resetting
   values without affecting persisted data.
 
+### Changed
+
+- Updated `use-sync-external-store` as dependency.
+
 ## [1.3.0] - 2025-06-22
 
 ### Added
