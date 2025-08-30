@@ -12,6 +12,11 @@ class MockSubStore extends Store {
 
 const mockSubscribeCallback = jest.fn();
 const mockSubscribeImmediateCallback = jest.fn();
+const mockStorage = {
+  setItem: jest.fn(),
+  getItem: jest.fn(),
+  removeItem: jest.fn(),
+};
 
 class MockStore extends Store {
   public subStore = this.inject(MockSubStore);
@@ -129,32 +134,27 @@ describe('Store tests', () => {
       });
 
       describe('persistence', () => {
-        const customStorage = {
-          setItem: jest.fn(),
-          getItem: jest.fn(),
-        };
-
         beforeEach(() => {
           jest.clearAllMocks();
         });
 
         it('should not apply store storage to atoms without persistence', () => {
           class StoreWithStorage extends Store {
-            storage = customStorage;
+            storage = mockStorage;
             regularAtom = this.atom('no-persistence');
           }
 
           const store = storeContainer.get(StoreWithStorage);
 
           expect(store.regularAtom.value).toBe('no-persistence');
-          expect(customStorage.setItem).not.toHaveBeenCalled();
+          expect(mockStorage.setItem).not.toHaveBeenCalled();
 
           storeContainer.remove(StoreWithStorage);
         });
 
         it('should use store storage as default for persisted atoms', async () => {
           class StoreWithStorage extends Store {
-            storage = customStorage;
+            storage = mockStorage;
             persistedAtom = this.atom('with-persistence', {
               persistence: { persistKey: 'store-storage-key' },
             });
@@ -164,7 +164,7 @@ describe('Store tests', () => {
 
           await new Promise(process.nextTick);
 
-          expect(customStorage.setItem).toHaveBeenCalledWith(
+          expect(mockStorage.setItem).toHaveBeenCalledWith(
             'store-storage-key',
             JSON.stringify('with-persistence'),
           );
@@ -176,9 +176,10 @@ describe('Store tests', () => {
           const atomCustomStorage = {
             setItem: jest.fn(),
             getItem: jest.fn(),
+            removeItem: jest.fn(),
           };
           class StoreWithStorage extends Store {
-            storage = customStorage;
+            storage = mockStorage;
             customStorageAtom = this.atom('custom-override', {
               persistence: {
                 persistKey: 'override-key',
@@ -324,6 +325,95 @@ describe('Store tests', () => {
 
         storeContainer.remove(TestStore);
       });
+    });
+  });
+
+  describe('Store Reset', () => {
+    class ResetTestStore extends Store {
+      persistedAtom1 = this.atom('default1', {
+        persistence: { persistKey: 'key1', storage: mockStorage },
+      });
+
+      persistedAtom2 = this.atom('default2', {
+        persistence: { persistKey: 'key2', storage: mockStorage },
+      });
+
+      nonPersistedAtom = this.atom('default3');
+    }
+    let testStore: ResetTestStore;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      testStore = storeContainer.get(ResetTestStore);
+    });
+
+    afterEach(() => {
+      storeContainer.remove(ResetTestStore);
+    });
+
+    it('should reset all atoms in store', async () => {
+      testStore.persistedAtom1.value = 'changed1';
+      testStore.persistedAtom2.value = 'changed2';
+      testStore.nonPersistedAtom.value = 'changed3';
+
+      await testStore.reset();
+
+      expect(testStore.persistedAtom1.value).toBe('default1');
+      expect(testStore.persistedAtom2.value).toBe('default2');
+      expect(testStore.nonPersistedAtom.value).toBe('default3');
+
+      expect(mockStorage.removeItem).toHaveBeenCalledWith('key1');
+      expect(mockStorage.removeItem).toHaveBeenCalledWith('key2');
+    });
+
+    it('should reset only specified atoms', async () => {
+      testStore.persistedAtom1.value = 'changed1';
+      testStore.persistedAtom2.value = 'changed2';
+
+      await testStore.reset({ atomKeys: ['persistedAtom1'] });
+
+      expect(testStore.persistedAtom1.value).toBe('default1');
+      expect(testStore.persistedAtom2.value).toBe('changed2');
+
+      expect(mockStorage.removeItem).toHaveBeenCalledWith('key1');
+      expect(mockStorage.removeItem).not.toHaveBeenCalledWith('key2');
+    });
+
+    it('should not reset anything for non-existent atom', async () => {
+      const store = new ResetTestStore();
+
+      store.persistedAtom1.value = 'changed1';
+      store.persistedAtom2.value = 'changed2';
+
+      await store.reset({ atomKeys: ['nonExistentAtom'] });
+
+      expect(store.persistedAtom1.value).toBe('changed1');
+      expect(store.persistedAtom2.value).toBe('changed2');
+    });
+
+    it('should clear persisted data without resetting values', async () => {
+      testStore.persistedAtom1.value = 'changed1';
+      testStore.persistedAtom2.value = 'changed2';
+
+      await testStore.clearPersistedData();
+
+      expect(testStore.persistedAtom1.value).toBe('changed1');
+      expect(testStore.persistedAtom2.value).toBe('changed2');
+
+      expect(mockStorage.removeItem).toHaveBeenCalledWith('key1');
+      expect(mockStorage.removeItem).toHaveBeenCalledWith('key2');
+    });
+
+    it('should reset values without clearing persisted data', async () => {
+      testStore.persistedAtom1.value = 'changed1';
+      testStore.persistedAtom2.value = 'changed2';
+
+      await testStore.resetValues();
+
+      expect(testStore.persistedAtom1.value).toBe('default1');
+      expect(testStore.persistedAtom2.value).toBe('default2');
+
+      expect(mockStorage.removeItem).not.toHaveBeenCalled();
     });
   });
 });

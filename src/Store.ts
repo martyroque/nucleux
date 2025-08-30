@@ -22,6 +22,12 @@ type UnwrappedValues<
   [P in keyof T]: UnwrappedValue<T[P]>;
 };
 
+interface StoreResetOptions {
+  resetValues?: boolean;
+  clearPersisted?: boolean;
+  atomKeys?: string[];
+}
+
 abstract class Store extends Injectable implements StoreInterface {
   private subscriptions: Map<string, (subId: string) => boolean> = new Map();
 
@@ -113,6 +119,36 @@ abstract class Store extends Injectable implements StoreInterface {
         });
       }
     }
+  }
+
+  public async reset(options: StoreResetOptions = {}): Promise<void> {
+    const { resetValues = true, clearPersisted = true, atomKeys } = options;
+
+    const resetPromises: Promise<void>[] = [];
+
+    for (const key in this) {
+      const potentialAtom = this[key];
+
+      if (isAtom(potentialAtom) && potentialAtom instanceof Atom) {
+        if (atomKeys && !atomKeys.includes(key)) {
+          continue;
+        }
+
+        resetPromises.push(
+          potentialAtom.reset({ resetValue: resetValues, clearPersisted }),
+        );
+      }
+    }
+
+    await Promise.allSettled(resetPromises);
+  }
+
+  public async clearPersistedData(): Promise<void> {
+    return this.reset({ resetValues: false, clearPersisted: true });
+  }
+
+  public async resetValues(): Promise<void> {
+    return this.reset({ resetValues: true, clearPersisted: false });
   }
 
   public destroy(): void {

@@ -14,11 +14,11 @@ interface ReadOnlyAtomInterface<V> {
     immediate?: boolean,
   ) => string;
   unsubscribe: (subId: string) => boolean;
+  reset(options?: AtomResetOptions): Promise<void>;
 }
 
 interface AtomInterface<V> extends ReadOnlyAtomInterface<V> {
   value: V;
-  reset(options?: AtomResetOptions): Promise<void>;
 }
 
 type Subscriber<V> = {
