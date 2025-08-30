@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 
 - Updated `use-sync-external-store` as dependency.
+- Updated `brace-expansion` to resolve regex DoS vulnerability.
 
 ## [1.3.0] - 2025-06-22
 
