@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.4.0] - 2025-08-30
+
 ### Added
 
 - Added BetaList featured badge.
