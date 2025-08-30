@@ -380,15 +380,13 @@ describe('Store tests', () => {
     });
 
     it('should not reset anything for non-existent atom', async () => {
-      const store = new ResetTestStore();
+      testStore.persistedAtom1.value = 'changed1';
+      testStore.persistedAtom2.value = 'changed2';
 
-      store.persistedAtom1.value = 'changed1';
-      store.persistedAtom2.value = 'changed2';
+      await testStore.reset({ atomKeys: ['nonExistentAtom'] });
 
-      await store.reset({ atomKeys: ['nonExistentAtom'] });
-
-      expect(store.persistedAtom1.value).toBe('changed1');
-      expect(store.persistedAtom2.value).toBe('changed2');
+      expect(testStore.persistedAtom1.value).toBe('changed1');
+      expect(testStore.persistedAtom2.value).toBe('changed2');
     });
 
     it('should clear persisted data without resetting values', async () => {

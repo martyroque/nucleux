@@ -252,6 +252,66 @@ class TodoStore extends Store {
 }
 ```
 
+### Reset Functionality
+
+Reset atoms to their initial values and clear persisted data when needed.
+
+#### Individual Atom Reset
+
+```javascript
+class UserStore extends Store {
+  theme = this.atom('light', { persistence: { persistKey: 'theme' } });
+  username = this.atom('guest');
+}
+
+const userStore = useStore(UserStore);
+
+// Reset atom to initial value and clear storage
+await userStore.theme.reset();
+
+// Reset value but keep persisted data
+await userStore.theme.reset({ clearPersisted: false });
+
+// Clear persisted data but keep current value
+await userStore.theme.reset({ resetValue: false });
+```
+
+#### Store-Level Reset
+
+```javascript
+class AppStore extends Store {
+  theme = this.atom('light', { persistence: { persistKey: 'theme' } });
+  language = this.atom('en', { persistence: { persistKey: 'language' } });
+  isOnline = this.atom(true); // No persistence
+}
+
+const appStore = useStore(AppStore);
+
+// Reset all atoms (values + persistence)
+await appStore.reset();
+
+// Reset specific atoms only
+await appStore.reset({ atomKeys: ['theme', 'language'] });
+
+// Convenience methods
+await appStore.clearPersistedData(); // Clear persisted data only
+await appStore.resetValues(); // Reset values only
+```
+
+#### Common Use Cases
+
+```javascript
+// User logout - clear sensitive data
+await userStore.reset({
+  atomKeys: ['profile', 'preferences'],
+  resetValues: true,
+  clearPersisted: true,
+});
+
+// App settings reset
+await settingsStore.reset();
+```
+
 ## React Native Setup
 
 Install the polyfill and import it before Nucleux:
@@ -422,6 +482,67 @@ constructor() {
     this.enableDebug();
   }
 }
+```
+
+#### `atom.reset(options?)`
+
+Reset atom to initial value and/or clear persisted data.
+
+**Options:**
+
+- `resetValue?: boolean` - Reset value to initial (default: true)
+- `clearPersisted?: boolean` - Clear persisted data from storage (default: true)
+
+```javascript
+// Reset everything
+await userAtom.reset();
+
+// Reset value only
+await userAtom.reset({ clearPersisted: false });
+
+// Clear storage only
+await userAtom.reset({ resetValue: false });
+```
+
+#### `this.reset(options?)`
+
+Reset multiple atoms in the store.
+
+**Options:**
+
+- `resetValues?: boolean` - Reset values to initial (default: true)
+- `clearPersisted?: boolean` - Clear persisted data (default: true)
+- `atomKeys?: string[]` - Specific atoms to reset (default: all atoms)
+
+```javascript
+// Reset all atoms
+await this.reset();
+
+// Reset specific atoms
+await this.reset({ atomKeys: ['theme', 'language'] });
+
+// Custom combination
+await this.reset({
+  resetValues: false,
+  clearPersisted: true,
+  atomKeys: ['cache'],
+});
+```
+
+#### `this.clearPersistedData()`
+
+Clear all persisted data without affecting current values.
+
+```javascript
+await this.clearPersistedData();
+```
+
+#### `this.resetValues()`
+
+Reset all atom values without affecting persisted data.
+
+```javascript
+await this.resetValues();
 ```
 
 ### React Hooks
