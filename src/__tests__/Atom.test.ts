@@ -355,6 +355,7 @@ describe('Atom tests', () => {
       const customStorage = {
         setItem: jest.fn(),
         getItem: jest.fn(),
+        removeItem: jest.fn(),
       };
 
       it('should hydrate persisted value when persisted value exists', async () => {
@@ -397,6 +398,67 @@ describe('Atom tests', () => {
         await new Promise(process.nextTick);
 
         expect(customStorage.setItem).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('reset', () => {
+      const customStorage = {
+        setItem: jest.fn(),
+        getItem: jest.fn(),
+        removeItem: jest.fn(),
+      };
+
+      it('should reset value to initial and clear storage by default', async () => {
+        const atom = new Atom('initial', {
+          persistence: { persistKey: 'test-key', storage: customStorage },
+        });
+
+        atom.value = 'changed';
+        expect(atom.value).toBe('changed');
+
+        await atom.reset();
+
+        expect(atom.value).toBe('initial');
+        expect(customStorage.removeItem).toHaveBeenCalledWith('test-key');
+      });
+
+      it('should only clear storage when resetValue is false', async () => {
+        const atom = new Atom('initial', {
+          persistence: { persistKey: 'test-key', storage: customStorage },
+        });
+
+        atom.value = 'changed';
+        await atom.reset({ resetValue: false });
+
+        expect(atom.value).toBe('changed');
+        expect(customStorage.removeItem).toHaveBeenCalledWith('test-key');
+      });
+
+      it('should only reset value when clearPersisted is false', async () => {
+        const atom = new Atom('initial', {
+          persistence: { persistKey: 'test-key', storage: customStorage },
+        });
+
+        atom.value = 'changed';
+        await atom.reset({ clearPersisted: false });
+
+        expect(atom.value).toBe('initial');
+        expect(customStorage.removeItem).not.toHaveBeenCalled();
+      });
+
+      it('should notify subscribers when value is reset', async () => {
+        const atom = new Atom('initial');
+        const callback = jest.fn((current, previous) => ({
+          current,
+          previous,
+        }));
+
+        atom.subscribe(callback);
+        atom.value = 'changed';
+
+        await atom.reset();
+
+        expect(callback).toHaveBeenCalledWith('initial', 'changed');
       });
     });
   });

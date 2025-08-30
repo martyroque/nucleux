@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - Added BetaList featured badge.
+- Added `reset()` method to atoms for resetting values to initial state
+  and clearing persisted data.
+- Added `reset()` method to Store class for bulk atom reset operations
+  with granular control.
+- Added `clearPersistedData()` convenience method to Store class for
+  clearing storage without affecting current values.
+- Added `resetValues()` convenience method to Store class for resetting
+  values without affecting persisted data.
 
 ## [1.3.0] - 2025-06-22
 

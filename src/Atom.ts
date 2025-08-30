@@ -1,6 +1,11 @@
 import isEqual from 'fast-deep-equal/es6';
 import { nanoid } from 'nanoid';
 
+interface AtomResetOptions {
+  resetValue?: boolean;
+  clearPersisted?: boolean;
+}
+
 interface ReadOnlyAtomInterface<V> {
   readonly value: V;
   readonly initialValue: V;
@@ -9,6 +14,7 @@ interface ReadOnlyAtomInterface<V> {
     immediate?: boolean,
   ) => string;
   unsubscribe: (subId: string) => boolean;
+  reset(options?: AtomResetOptions): Promise<void>;
 }
 
 interface AtomInterface<V> extends ReadOnlyAtomInterface<V> {
@@ -30,7 +36,7 @@ type PromisifyMethods<T> = {
 };
 
 export type SupportedStorage = PromisifyMethods<
-  Pick<Storage, 'getItem' | 'setItem'>
+  Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
 >;
 
 export interface AtomMemoizationOptions<V> {
@@ -164,6 +170,28 @@ class Atom<V> implements AtomInterface<V> {
     }
 
     return this.subscribers.delete(subId);
+  }
+
+  public async reset(options: AtomResetOptions = {}) {
+    const { resetValue = true, clearPersisted = true } = options;
+
+    if (clearPersisted && this.persistence) {
+      const { persistKey, storage = localStorage } = this.persistence;
+      try {
+        await storage.removeItem(persistKey);
+      } catch (error) {
+        console.error(
+          `Failed to clear persisted data for key ${persistKey}:`,
+          error,
+        );
+      }
+    }
+
+    if (resetValue) {
+      const previousValue = this._value;
+      this._value = this._initialValue;
+      this.notifySubscribers(this._initialValue, previousValue);
+    }
   }
 }
 
